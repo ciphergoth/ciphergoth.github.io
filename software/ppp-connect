@@ -1,0 +1,441 @@
+#!/usr/bin/perl -w
+
+$rcsid = q$Id: ppp-connect 1.1 Sat, 19 Jun 1999 19:19:22 +0100 paul $;
+
+use strict;
+#no strict 'vars';
+use vars qw($rcsid $opt_help $opt_version $opt_verbose),
+    qw($opt_max_idle_time $opt_max_time $opt_min_time),
+    qw($opt_chatdir $opt_chatfiles $opt_chat_timeout $opt_serial_rate),
+    qw($opt_sleep_time $opt_max_dials $opt_max_time_per_attempt),
+    qw($opt_sampling_interval $opt_logfile $opt_config_file),
+    qw($opt_chat_verbose $opt_monitor_idle $opt_pjob_interval),
+    qw(@user_options @root_options),
+    qw($progname $is_setuid),
+    qw($prev_event $prev_time),
+    qw(@pids_launched $pppd_pid $pppd_start_time $ppp_device),
+    qw(%pid_desc);
+
+use FileHandle;
+use Getopt::Long;
+use POSIX "sys_wait_h";
+
+# --------------------------------------------------------------------
+
+sub logmsg {
+#    system(qw(/usr/bin/logger -s -t), $basename, @_);
+    print @_, "\n";
+    print DIALOUT_LOG @_, "\n";
+}
+
+sub verbose {
+   if ($opt_verbose) {logmsg @_};
+}
+
+
+sub timing_announce {
+    my $new_event = shift;
+    my ($time_elapsed, $mins, $secs, $new_time);
+    
+    $new_time = time;
+    if (defined $prev_time) {
+        $time_elapsed = $new_time - $prev_time;
+        $mins = int($time_elapsed / 60);
+        $secs = $time_elapsed % 60;
+        $secs = sprintf("%02d", $secs);
+        logmsg "$new_event ($mins:$secs after $prev_event)";
+    } else {
+        logmsg $new_event;
+    }
+    $prev_time = $new_time;
+    $prev_event = $new_event;
+}
+
+sub kill_pppd {
+    if (defined $pppd_pid) {
+        # Kill it!
+        if (kill('TERM', $pppd_pid)) {
+            timing_announce "PPPD killed with signal";
+        } else {
+            timing_announce "PPPD kill failed with error $!";
+        }
+        undef $pppd_pid;
+    }
+}
+
+sub snuff_it {
+    my $exitcode = shift;
+    my $exit_message = shift;
+
+    if (defined $pppd_pid) {
+        kill_pppd();
+        logmsg $exit_message;
+    } else {
+        timing_announce $exit_message;
+    }
+    if(defined &main::before_exit) {
+        eval '&before_exit' or die "before_exit command failed: $@, stopped";
+    }
+    exit $exitcode;
+}
+
+sub signal_handler {
+    my $signal = shift;
+
+    snuff_it(-1, "Shutting down after signal $signal");
+}
+
+sub com_launch {
+    my $wait_time = shift;
+    my $uid = shift;
+    my $gid = shift;
+    my $pid = fork;
+    
+    unless (defined $pid) {
+        snuff_it(-1, "Failed to fork: $!, stopped");
+    }
+    if ($pid == 0) {
+        # We're the child
+        $) = $( = $gid;
+        $> = $< = $uid;
+        sleep $wait_time;
+        exec @_;
+        # Exec must have failed
+        die "Exec of " . join(' ', @_) . " failed: $!, stopped";
+    }
+    # We're the parent
+    logmsg "PID $pid: ", join(' ', @_);
+    push @pids_launched, $pid;
+    $pid_desc{$pid} = join(" ", @_);
+    return $pid;
+}
+
+sub launch {
+    my $wait_time = shift;
+    return com_launch($wait_time, $>, $), @_);
+}
+
+sub su_launch {
+    my $wait_time = shift;
+    my $user = shift;
+    
+#    unless (($user, $group) = ($usergroup =~ /^(.+),(.+)$/)) {
+#      $user = $group = $usergroup;
+#    }
+    my ($login, $pass, $uid, $gid);
+    unless (($login, $pass, $uid, $gid) = getpwnam($user)) {
+      snuff_it(-1, "Failed to get user information for $user: $!, stopped");
+    }
+    return com_launch($wait_time, $uid, $gid, @_);
+}
+
+sub is_pppd_dead {
+    unless (defined $pppd_pid) {
+        return 1;
+    }
+    my $pid;
+    while (($pid = waitpid(-1, WNOHANG)) != 0) {
+        my $error_code = $? >> 8;
+	my $error_desc;
+	if ($error_code) {
+	    $error_desc = "died with error number $error_code";
+	} else {
+	    $error_desc = "completed successfully"
+	}
+        if ($pid == $pppd_pid) {
+            undef $pppd_pid;
+	    if ($error_code) {
+                timing_announce "PPPD $error_desc";
+	     }
+            return 1;
+        } else {
+            timing_announce "PID $pid (" . $pid_desc{$pid} . ") $error_desc";
+        }
+    }
+    return 0;
+}
+
+sub get_usage {
+    my $ppp_device = shift;
+    
+    open DEV, "/proc/net/dev"
+        or snuff_it(-1, "Couldn't open dev file: $!");
+    my $usage = 0;
+    LINE: while (<DEV>) {
+        chomp;
+        my @dev = split(/\s+/);
+        unless ($dev[0]) {
+            shift @dev;
+        }
+        if ($dev[0] eq "$ppp_device\:") {
+            $usage += $dev[1]; # Receive
+            $usage += $dev[6]; # Transmit
+        }
+    }
+    close DEV or snuff_it(-1, "Couldn't close dev file: $!");
+    return $usage;
+}
+
+# --------------------------------------------------------------------
+# --------------------------------------------------------------------
+# --------------------------------------------------------------------
+
+# Switch off buffering.
+
+STDOUT->autoflush(1);
+
+# CD to somewhere everyone can reach
+
+chdir("/tmp") or die "Couldn't even cd to /tmp: $!, stopped";
+
+# --------------------------------------------------------------------
+
+$opt_help = 0;
+$opt_version = 0;
+
+$Getopt::Long::passthrough = 1;
+GetOptions(qw(help version))
+    or die "Failed to parse command line options, stopped";
+
+
+if ($opt_help) {
+    print "Sorry, I haven't written help yet.\n";
+    print "You don't really need any options, but if you do, use the source\n";
+    print "cheers, paul\@hedonism.demon.co.uk\n";
+    exit;
+}
+
+if ($opt_version) {
+    print "RCS version: $rcsid\n";
+    exit;
+}
+
+# --------------------------------------------------------------------
+
+$is_setuid = scalar( $< != $> or $( != $) );
+if ($is_setuid) {
+    $ENV{PATH} = q(/usr/bin:/bin);
+}
+
+$opt_max_idle_time = 180;
+$opt_logfile = '/var/local/log/dialout';
+$opt_chatdir = '/etc/local/dialout/chatfiles';
+$opt_sleep_time = 30;
+$opt_max_dials = 12;
+$opt_max_time_per_attempt = 180; # usually not needed, chat dies first.
+$opt_sampling_interval = 10;
+$opt_pjob_interval = 30;
+$opt_chat_timeout = 60;
+$opt_max_time = 3600; # An hour
+$opt_min_time = 300; # Five minutes
+$opt_serial_rate = 115200;
+$opt_monitor_idle = 0;
+$opt_verbose = 1;
+$opt_chat_verbose = 0;
+
+@user_options = 
+    (qw(verbose! monitor_idle!),
+     qw(max-idle-time=i sleep-time=i max-time=i min-time=i),
+     qw(max-dials=i max-time-per-attempt=i),
+     qw(chatfiles=s chat-timeout=i sampling-interval=i),
+     qw(pjob-interval=i chat-verbose! serial-rate=i));
+
+@root_options = 
+    (qw(chatdir=s logfile=s));
+
+$opt_config_file = "default";
+
+if (!$is_setuid) {
+    $Getopt::Long::passthrough = 1;
+    GetOptions(qw(config-file=s))
+        or die "Failed to parse command line options, stopped";
+}
+
+{
+    my $config_file;
+    if ($opt_config_file eq "default") {
+        $config_file = '/etc/local/dialout/ppp-config';
+    } else {
+        $config_file = $opt_config_file;
+    }
+    
+    if (-e $config_file) {
+        unless (do $config_file) {
+          print "$@\n";
+          die "Failed reading config file $config_file, stopped";
+	}
+    } elsif ($opt_config_file ne "default") {
+        die "Config file $config_file doesn't exist, stopped";
+    }
+}
+
+$Getopt::Long::passthrough = 0;
+GetOptions(@user_options, $is_setuid ? () : @root_options)
+    or die "Failed to parse command line options, stopped";
+
+if (scalar(@ARGV) > 0) {
+    die "Unparsed arguments on command line: \""
+        . join(' ', @ARGV) . "\", stopped";
+}
+
+if ($opt_max_time < $opt_min_time) {
+    die "Doesn't make sense to have max-time < min-time, stopped";
+}
+
+if ($opt_chatfiles eq "") {
+    die "Chatfile list empty, stopped";
+}
+
+my @chatfiles = split(/,/, $opt_chatfiles);
+
+my $file;
+
+foreach $file (@chatfiles) {
+   unless ($file =~ /^[-a-z]+$/) {
+       die "Invalid chatfile name $file, stopped";
+   }
+   unless (-f "$opt_chatdir/$file") {
+       die "Chatfile $opt_chatdir/$file doesn't exist, stopped";
+   }
+}
+
+# --------------------------------------------------------------------
+
+open DIALOUT_LOG, ">>$opt_logfile"
+    or die "Couldn't open log file for appending: $!, stopped";
+flock DIALOUT_LOG, (2 | 4) # Exclusive, nonblocking
+    or die "Couldn't get lock on log file: $!, stopped";
+seek DIALOUT_LOG, 0, 2 # Seek to the end now we've got the lock.
+    or die "Couldn't seek to end of log file: $!, stopped";
+DIALOUT_LOG->autoflush(1);
+
+$is_setuid = scalar( $< != $> or $( != $) );
+
+if ($is_setuid) {
+    logmsg "Started dialout for user: ", scalar(getpwuid($<)), ": ", scalar(gmtime);
+} else {
+    logmsg "Started non-setuid dialout: ", scalar(gmtime);
+}
+
+# --------------------------------------------------------------------
+
+if(defined &main::before_connect) {
+    eval '&before_connect' or die "before_connect command failed: $@, stopped";
+}
+
+foreach (qw(HUP INT QUIT TRAP ABRT IOT BUS FPE KILL USR1 USR2 PIPE ALRM), 
+    qw(TERM STKFLT STOP URG XCPU XFSZ IO)) {
+    $SIG{$_} = \&signal_handler;
+}
+
+my $dial_attempts = 0;
+
+ DIAL_ATTEMPT: while (1) {
+     if ($dial_attempts >= $opt_max_dials) {
+         snuff_it(-1, "Maximum dial attempts reached");
+     }
+     if ($dial_attempts > 0) {
+         sleep $opt_sleep_time;
+     }
+     # Pull the chatfile from one end
+     my $chatfile = shift @chatfiles;
+     # Push it on the other.
+     push @chatfiles, $chatfile;
+     my $connect_script = 
+         join(" ",
+              "/usr/sbin/chat",
+              "-t", $opt_chat_timeout,
+              $opt_chat_verbose ? ('-v') : (),
+              '-f', ($opt_chatdir . "/" . $chatfile));
+     $dial_attempts++;
+     timing_announce "starting PPPD";
+     $pppd_pid = 
+         launch(0, qw(/usr/sbin/pppd /dev/modem), $opt_serial_rate,
+                 qw(defaultroute -detach), 
+                'connect', $connect_script);
+     $pppd_start_time = time;
+     logmsg "PPP pid $pppd_pid (attempt $dial_attempts, \"$chatfile\")";
+     # Now wait either for PPPD to die or a route to be found
+     while (1) {
+         if (is_pppd_dead()) {
+             # It's already been announced.
+             next DIAL_ATTEMPT;
+         }
+#    verbose "Opening /proc/net/route"; # Really too verbose. 
+         open ROUTE, "/proc/net/route" 
+             or snuff_it(-1, "Couldn't open route file: $!, stopped");
+         my @route_names = split(/\t/, <ROUTE>);
+         while (<ROUTE>) {
+             chomp;
+             my $i = 0;
+             my %route;
+             my $value;
+             foreach $value (split(/\t/)) {
+                 $route{$route_names[$i]} = $value;
+                 $i++;
+             }
+             if ($route{Mask} eq '00000000') {
+                 timing_announce "default route found";
+                 $ppp_device = $route{Iface};
+                 last DIAL_ATTEMPT;
+             }
+         }
+         close ROUTE or snuff_it(-1, "Couldn't close route file, error $!");
+         if (time - $pppd_start_time > $opt_max_time_per_attempt) {
+             logmsg "PPPD seems to be wedged, shooting...";
+             kill_pppd();
+             next DIAL_ATTEMPT;
+         }
+#    verbose "Failed to find route, sleeping...";
+         sleep 2;
+     }
+ }
+
+# We're now connected.
+logmsg "Dialout started: ", scalar(gmtime($pppd_start_time));
+
+if(defined &main::once_connected) {
+    eval '&once_connected' or die "once_connected command failed: $@, stopped";
+}
+
+# Now wait for some idle time.
+
+my $prev_usage = get_usage($ppp_device);
+my $initial_deadline = $pppd_start_time + $opt_min_time;
+my $time_now = time;
+my $use_deadline = $time_now + $opt_max_idle_time;
+my $pjob_deadline = $time_now + $opt_pjob_interval;
+my $final_deadline = $pppd_start_time + $opt_max_time;
+SAMPLE: while (1) {
+    sleep($opt_sampling_interval);
+    if (is_pppd_dead()) {
+        snuff_it(-1, "PPPD is dead");
+    }
+    $time_now = time;
+    if ($time_now >= $final_deadline) {
+        snuff_it(0, "PPPD maximum dialout time reached");
+    }
+    my $usage = get_usage($ppp_device);
+    if ($usage > $prev_usage) {
+        if ($opt_monitor_idle) {
+            logmsg "Still working with ", $use_deadline - $time_now, 
+                " seconds to go";
+        }
+        $prev_usage = $usage;
+        $use_deadline = $time_now + $opt_max_idle_time;
+    } else {
+        if ($opt_monitor_idle) {
+            logmsg "all quiet with ", $use_deadline - $time_now, 
+                " seconds to go";
+        }
+        if ($time_now >= $initial_deadline && $time_now >= $use_deadline) {
+            snuff_it(0, "PPPD long idle time detected.");
+        }
+    }
+    if ($time_now >= $pjob_deadline) {
+        if (defined &main::do_pjob) {
+            eval '&do_pjob' or snuff_it(0, "pjob command failed: $@.");
+        }
+	$pjob_deadline = $time_now + $opt_pjob_interval;
+    }
+}

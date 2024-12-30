@@ -1,0 +1,159 @@
+// -*- mode: c -*-
+// wiggler.nqc
+// Paul Crowley, 2001.
+// programs@paul.cluefactory.org.uk
+// http://www.cluefactory.org.uk/paul/lego
+//
+// This is a more complex program for a line-following robot. 
+// Outputs A and C drive right and left wheels, while
+// input 2 is a light sensor at the front of the robot.
+
+#define EYE	SENSOR_2
+#define LEFT	OUT_C
+#define RIGHT	OUT_A
+
+// On my robot, these had to be switched
+#define FORWARDS (OUT_REV)
+#define REVERSE (OUT_FWD)
+
+// Speeds - don't actually seem to make a difference.
+#define NORMAL_SPEED 10
+#define TURN_SPEED 1
+
+// All times in 1/10ths of a second 
+#define COMMA_TIME (1)
+#define OVERSHOOT_TIME (1)
+#define WIGGLE_TIME (5)
+#define GOOD_TIME (3)
+// "Angles" are really turn times
+#define INIT_ANGLE (3)
+#define ANGLE_STEP (2)
+
+// Light levels, expressed as percentages 
+#define THRESHOLD	(43)
+#define BOARD_EDGE	(24)
+
+int direction, turn_angle, turn_time, eye, timer;
+
+task main()
+{
+    SetSensor(EYE, SENSOR_LIGHT);
+    
+    direction = 1;
+    turn_angle = INIT_ANGLE;
+   
+    eye = EYE;
+    while (true) {
+        search();  // until we find the track
+        follow();  // until we lose it again
+    }
+}
+
+// Stand still for a moment 
+
+void stand_still_briefly() 
+{
+    Off(LEFT+RIGHT);
+        // Wait measures time in 100ths of a second
+#if COMMA_TIME > 0
+   Wait(COMMA_TIME * 10);
+#endif
+}
+
+void wait_for_track(const int &timeout)
+{
+    ClearTimer(0);
+    timer = 0;
+    while (eye >= THRESHOLD && timer < timeout) {
+        eye = EYE;
+        timer = Timer(0);
+    }
+}
+
+// Search for the track - return the moment the eye sees track
+
+sub search()
+{
+    SetPower(LEFT + RIGHT, TURN_SPEED);
+        // Try turning from side to side now
+    turn_time = turn_angle;
+    while (true) {
+        if (direction == 1) {
+            SetDirection(RIGHT, FORWARDS);
+            SetDirection(LEFT, REVERSE);
+        } else {
+            SetDirection(LEFT, FORWARDS);
+            SetDirection(RIGHT, REVERSE);
+        }
+        On(LEFT + RIGHT);
+        wait_for_track(turn_time);
+        if (eye < THRESHOLD) {
+            return;
+        }
+            // Back up a little now
+        ClearTimer(0);
+        SetDirection(LEFT + RIGHT, REVERSE);
+        On(LEFT + RIGHT);
+        wait_for_track(turn_angle);
+        stand_still_briefly();
+        if (eye < THRESHOLD) {
+            return;
+        }
+            // Didn't find it looking that way, try the other way and
+            // look further
+        direction *= -1;
+        turn_time = turn_angle; // turn back to where we started
+        turn_angle += ANGLE_STEP;
+        turn_time += turn_angle; // and more besides
+    }
+}
+
+// We've found the track: wiggle from side to side following it until
+// we lose it again.
+
+sub follow()
+{
+    int successes, timer;
+    
+    successes = 0;
+    SetPower(LEFT + RIGHT, NORMAL_SPEED);
+    SetDirection(LEFT + RIGHT, FORWARDS);
+    while (true) {
+            // Turn until we see the track
+        if (direction == 1) {
+            Off(LEFT);
+            On(RIGHT);
+        } else {	
+            Off(RIGHT);
+            On(LEFT);
+        }
+        wait_for_track(WIGGLE_TIME);
+        if (eye >= THRESHOLD) {
+            return;
+        }
+        if (eye < BOARD_EDGE) {
+                // abort, abort!
+            Off(LEFT+RIGHT);
+            StopAllTasks();
+                // NOTREACHED - StopAllTasks kills the current task
+        }
+            // "successes" is used to judge whether we're really on
+            // track
+        if (timer < GOOD_TIME) {
+            successes++;
+        } else {
+            successes = 0;
+        }
+        if (successes > 3) {
+                // We're on track, so next time we have to search,
+                // start small.
+            turn_angle = INIT_ANGLE;
+        }
+            // Deliberately overshoot and change direction
+            // Wait measures time in 100ths of a second
+        Wait(OVERSHOOT_TIME * 10);
+        direction *= -1;
+            // eye will be out of date now.
+        eye = EYE;
+    }
+}

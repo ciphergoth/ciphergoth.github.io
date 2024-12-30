@@ -1,0 +1,173 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Mercy: A fast large block cipher for disk sector
+    encryption</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      Mercy</p>
+<h1>Mercy: A fast large block cipher for disk sector
+    encryption</h1>
+    
+<p class="authors">
+<strong><a href="../">Paul
+    Crowley</a></strong>
+</p>
+
+    
+<p class="cite">In Bruce Schneier, editor, <em>Fast Software
+    Encryption: 7th International Workshop</em>, volume 1978 of
+    <em>Lecture Notes in Computer Science</em>, pages 49-63, New York,
+    USA, April 2000. Springer-Verlag.</p>
+
+    
+<p class="abstract">
+<strong>Abstract.</strong> We discuss the
+    special requirements imposed on the underlying cipher of systems
+    which encrypt each sector of a disk partition independently, and
+    demonstrate a certificational weakness in some existing block
+    ciphers including Bellare and Rogaway's 1999 proposal, proposing a
+    new quantitative measure of avalanche. To address these needs, we
+    present Mercy, a new block cipher accepting large (4096-bit)
+    blocks, which uses a key-dependent state machine to build a
+    bijective F function for a Feistel cipher.  Mercy achieves 9
+    cycles/byte on a Pentium compatible processor.  <br> 
+<strong>Key
+    words:</strong> disk sector, large block, state machine,
+    avalanche, Feistel cipher.</p>
+
+    
+<ul>
+      
+<li>
+<a href="html/">Read on</a> - this version is very slightly
+      different from the Postscript version to make it better for
+      online reading</li>
+
+      
+<li>
+<a href="mercy-paper.ps">Postscript</a> (246840
+      bytes)</li>
+
+      
+<li>
+<a href="mercy-paper.ps.gz">gzipped Postscript</a> (86530
+      bytes)</li>
+
+      
+<li>
+<a href="mercy.zip">zipped Postscript</a> (accompanied by
+      the sample implementation, 93220 bytes)</li>
+
+      
+<li>
+<a href="mercy-paper.pdf">PDF</a> (231706 bytes) - but be
+      warned that the conversion isn't very good and the Postscript
+      is probably more readable</li>
+
+      
+<li>
+<a href="crowley00mercy.bib">BibTeX</a>
+</li>
+
+      
+<li>
+<a href="http://citeseer.nj.nec.com/crowley00mercy.html">ResearchIndex
+      entry</a>
+</li>
+    
+</ul>
+
+    
+<p>
+<strong>Copyright &copy; IACR</strong> (the International
+    Association for Cryptologic Research); see the <a href="http://www.iacr.org/forms/">copyright form</a> I signed
+    for the obligations this places on me. <a href="http://www.springer.de/comp/lncs/">Springer-Verlag's LNCS
+    webpages</a> are the primary source for this document.</p>
+
+    
+<h2>On this website</h2>
+
+    
+<ul>
+      
+<li>
+<a href="fluhrer-dc.html">Cryptanalysis of the Mercy
+      block cipher</a>, Scott Fluhrer, FSE 2001. This distingusiher
+      shows that Mercy is structurally vulnerable to differential
+      cryptanalysis.</li>
+
+      
+<li>
+<a href="source.html">Sample source code</a> so you can
+      test how fast Mercy runs on your system.</li>
+
+      
+<li>
+<a href="sfs-extract.html">An extract from the SFS
+      documentation</a> describing its approach to solving the
+      special challenges of disk encryption.</li>
+    
+</ul>
+
+    
+<p>Mercy is a fast block cipher operating on 4096-bit blocks,
+    designed specifically around the needs of disk sector
+    encryption. It takes a 128-bit parameter representing the block
+    number being encrypted, so that saving the same plaintext to
+    different blocks results in different ciphertexts. Mercy was
+    presented at Fast Software Encryption 2000.</p>
+
+    
+<p>
+<strong>Mercy is weak</strong>: a highly effective differential
+    cryptanalysis-based distinguisher across all six rounds was
+    presented by Scott Fluhrer at FSE 2001. A new version of Mercy
+    resistant to this attack may be forthcoming at some point; until
+    then, <strong>Mercy should definitely not see real
+    use</strong>.</p>
+
+    
+<p>Mercy carries no licensing restrictions, and all the source
+    code here is placed in the public domain. I know of no patent
+    restrictions affecting it.</p>
+
+    
+<h2>Related resources</h2>
+
+    
+<ul>
+      
+<li>
+<a id="sfs" name="sfs" href="http://www.cs.auckland.ac.nz/~pgut001/sfs/">SFS</a>, a
+      disk block encryption tool by Peter Gutmann.</li>
+
+      
+<li>
+<a id="ritter" name="ritter" href="http://www.ciphersbyritter.com/">Ciphers by Ritter</a>,
+      including several patent-encumbered large block ciphers.</li>
+    
+</ul>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      Mercy</p>
+</body>
+
+</html>

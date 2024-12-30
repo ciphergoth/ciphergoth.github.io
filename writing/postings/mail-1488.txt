@@ -1,0 +1,44 @@
+X-From-Line: nobody Wed Jun  9 11:23:35 1999
+To: steve@spore.ca.boeing.com
+Cc: Multiple recipients of list AM-INFO <am-info@essential.org>
+Subject: Re: Second Mindcraft Report?
+References: <375D51A1.85F4DA26@spore.ca.boeing.com>
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 09 Jun 1999 11:23:33 +0100
+In-Reply-To: steve's message of "Tue, 8 Jun 1999 15:12:42 -0400"
+Message-ID: <87r9nlad0a.fsf@hedonism.demon.co.uk>
+X-Mailer: Gnus v5.5/XEmacs 20.4 - "Emerald"
+Lines: 29
+Xref: hedonism.demon.co.uk misc-mail:1488
+X-Gnus-Article-Number: 1488   Wed Jun  9 11:23:35 1999
+
+Another good resource for information about the Mindcraft tests is
+Linux Weekly News, http://lwn.net/
+
+Note that while the report is full of deceptions and misdirections,
+there's at least one clear, bald-faced lie which can be established
+beyond doubt.  Weiner claims in the report to have asked for help with
+configuring Linux in more than one "appropriate forum". However, all
+of the appropriate forums are archived, and some people did a lot of
+searching and found only one request for help, which immediately
+elicited requests for clarification that were never forthcoming.
+
+Weiner's written quite a bit in answer to critics of the report, but
+he's curiously never deigned to respond to the commonly-levelled
+accusation of outright lying even though one or two URLs pointing to
+an archived request for help such as he described in the report would
+settle the matter.  I conclude therefore that this bit of text was an
+outright and deliberate falsehood intended to tarnish the reputation
+of the Linux community.
+
+Because this is so cut-and-dried - quote the relevant part of the
+report, challenge him to quote the URLs - this is all Linus Torvalds,
+Jeremy Allison, or anyone else need cite as a reason why they don't
+intend to have their names attached to yet another exercise in
+bald-faced lying.
+-- 
+  __
+\/ o\ paul@hedonism.demon.co.uk  http://www.hedonism.demon.co.uk/paul/ \ /
+/\__/ Paul Crowley            Upgrade your legacy NT machines to Linux /~\
+Employ me! Linux, Unix, crypto, Perl, C/C++, distance work... Edinburgh UK.
+

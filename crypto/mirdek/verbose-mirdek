@@ -1,0 +1,246 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Getopt::Long;
+use vars qw(@left @right @discard),
+  qw($opt_decrypt $opt_verbose $opt_iv $opt_key $opt_input $output);
+
+sub canonicalise_string {
+  my $s = uc shift;
+  my $t;
+  $s =~ s[(\d+)][($t = $1) =~ tr|0-9|ZA-I|;"X${t}X"]ego;
+  $s =~ tr/A-Z//cd;
+  return $s;
+}
+
+sub break_up_output {
+  my $s = shift;
+  $s =~ s/([A-Z]{5})\B/$1 /g;
+  $s =~ s/([A-Z ]{29}) /$1\n/g;
+  print $s, "\n";
+}
+
+sub string_to_pile {
+  return map {ord(uc $_) - ord('A') +1} split(//, shift);
+}
+
+sub p2s { # pile to string
+  return join('', map {chr(ord('A') + $_ -1)} @_);
+}
+
+sub print_state {
+  if ($opt_verbose) {
+    print "Discard: ", p2s(@discard), "\n";
+    print "Right:   ", p2s(@right), "\n";
+    print "Left:    ", p2s(@left), "\n\n";
+  }
+}
+
+sub swap_piles {
+  push @discard, @right;
+  @right = @left;
+  @left = @discard;
+  @discard = ();
+  print_state();
+}
+
+sub get_right {
+  # Take cards from the bottom
+  my $card = pop @right;
+  unshift @discard, $card;
+  print "Top card of discard pile: ", p2s($card), "\n" if $opt_verbose;
+  return $card;
+}
+
+sub make_left {
+  if ($opt_verbose) {
+    print 
+      "Putting together pile: ", 
+      join(" + ", map {p2s @$_} \@left, @_), "\n"; 
+  }
+  push @left, map {@$_} @_;
+}
+
+sub count_cut {
+  print "Count cut:\n" if $opt_verbose;
+  for (;;) {
+    make_left [splice @left, 0, get_right()];
+    return unless @right == 0;
+    print_state();
+    print "Right pile exhausted, swapping:\n" if $opt_verbose;
+    swap_piles();
+    print "Repeating count cut:\n" if $opt_verbose;
+  }
+}
+
+sub counted_rev {
+  my $count = shift;
+  my $p1 = [];
+  my $p2 = [];
+  print "Dealing cards: ", p2s(@left[0..$count -1]), "\n" if $opt_verbose;
+  foreach my $i (1..$count) {
+    ($p1, $p2) = ($p2, $p1);
+    unshift @$p1, shift @left;
+  }
+  make_left $p1, $p2;
+}
+
+sub find_card {
+  my $target = shift;
+  my $i = 0;
+  foreach (@left) {
+    $i++;
+    return $i if $_ == $target;
+  }
+  die "Failed to find expected card in deck: internal error";
+}
+
+sub encrypt_letter {
+  my $ptext = shift;
+  my $ctext = find_card($ptext);
+  counted_rev $ctext;
+  return $ctext;
+}
+
+sub decrypt_letter {
+  my $ctext = shift;
+  my $ptext = $left[$ctext -1];
+  counted_rev $ctext;
+  return $ptext;
+}
+
+sub crypt_letter  {
+  my $in = shift;
+  my $out;
+  if ($opt_decrypt) {
+    print "Decrypting letter: ", p2s($in), "\n" if $opt_verbose;
+    $out = decrypt_letter($in);
+    print "Plaintext letter: ", p2s($out), "\n" if $opt_verbose;
+  } else {
+    print "Encrypting letter: ", p2s($in), "\n" if $opt_verbose;
+    $out = encrypt_letter($in);
+    print "Ciphertext letter: ", p2s($out), "\n" if $opt_verbose;
+  }
+  print_state();
+  return $out;
+}
+
+
+sub use_iv {
+  my $iv = shift;
+  @right = string_to_pile($iv);
+  unless (@right == 25) {
+    print "Invalid IV: should be exactly 25 characters\n";
+  }
+  my %missing_hash;
+  @missing_hash{1..26} = (1) x 26;
+  foreach (@right) {
+    unless ($missing_hash{$_}) {
+      die "IV invalid: ", p2s($_), " repeated."
+    }
+    delete $missing_hash{$_};
+  }
+  push @right, keys %missing_hash;
+  @left = (1..26);
+  @discard = ();
+  print "Initial state of piles:\n" if $opt_verbose;
+  print_state();
+}
+
+sub use_key {
+  my $keyphrase = shift;
+  foreach my $letter (string_to_pile($keyphrase)) {
+    count_cut();
+    print_state();
+    print "Mixing in ", p2s($letter), " from the passphrase:\n" 
+      if $opt_verbose;
+    encrypt_letter($letter);
+    print_state();
+  }
+}
+
+sub mix_piles {
+  print "Discarding rest of right pile and swapping:\n" if $opt_verbose;
+  swap_piles();
+  
+  while (@right) {
+    print "Mixing left pile using right:\n" 
+      if $opt_verbose;
+    encrypt_letter(get_right());
+    print_state();
+  }
+  print "Swapping piles:\n" if $opt_verbose;
+  swap_piles();
+}
+
+sub cryptit {
+  my $input = shift;
+  my @output;
+  foreach my $letter (string_to_pile($input)) {
+    count_cut();
+    print_state();
+    push @output, crypt_letter($letter);
+  }
+  return p2s(@output);
+}
+
+$opt_decrypt = 0;
+$opt_verbose = 0;
+GetOptions(qw(decrypt! verbose! key=s iv=s input=s))
+  or die "Failed to parse command line options, stopped";
+
+unless (defined $opt_key) {
+  die "Can't work without --key argument, stopped";
+}
+
+$opt_key = canonicalise_string $opt_key;
+
+unless (defined $opt_input) {
+  $opt_input = join("", <>);
+}
+$opt_input = canonicalise_string $opt_input;
+
+if (defined $opt_iv) {
+  $opt_iv = canonicalise_string $opt_iv;
+} else {
+  if ($opt_decrypt) {
+    $opt_input =~ s/^[A-Z]{25}//;
+    $opt_iv = $&;
+  } else {
+    my @source = (1..26);
+    my @iv = ();
+    while (@source) {
+      push @iv, splice(@source, int(rand(scalar(@source))), 1)
+    }
+    pop @iv;
+    $opt_iv = p2s(@iv);
+  }
+}
+
+if ($opt_verbose) {
+  print "Initialisation vector: ";
+  break_up_output($opt_iv);
+}
+
+unless ($opt_decrypt) {
+  $opt_input .= "X" x (4 - ((length($opt_input) + 4) % 5));
+}
+
+if ($opt_verbose) {
+  print "Key: $opt_key\n";
+  print(($opt_decrypt ? "Cipher" : "Plain"), "text:\n");
+  break_up_output $opt_input;
+  print "\n";
+}
+
+use_iv($opt_iv);
+use_key($opt_key);
+mix_piles();
+$output = cryptit($opt_input);
+if ($opt_decrypt) {
+  print "Plaintext:\n";
+  break_up_output $output;
+} else {
+  print "Ciphertext: \n";
+  break_up_output ($opt_iv . $output);
+}

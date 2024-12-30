@@ -1,0 +1,715 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Mercy: Scott Fluhrer's differential attack</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mercy</a> &gt;
+      Fluhrer attack</p>
+<h1>Mercy: Scott Fluhrer's differential attack</h1>
+    
+<p> Note that this attack is now the basis of Scott's paper,
+    "Cryptanalysis of the Mercy block cipher", which was presented
+    to FSE 2001.</p>
+
+    
+<ul>
+      
+<li>
+<a href="fluhrer-mercy.ps">Postscript</a> (148039
+      bytes)</li>
+
+      
+<li>
+<a href="fluhrer-mercy.ps.gz">gzipped Postscript</a>
+      (45222 bytes)</li>
+    
+</ul>
+
+    
+<h2>Six round attack</h2>
+
+    
+<p>Hi,</p>
+
+    
+<p> While you are busy having fun gathering statistics on RC4
+    tetragraphs, I've been dinking around with Mercy, and I
+    happened to stumble across a differential that holds with
+    probability 2**-94 (according to my calculations). I'll draw
+    out the bitwise differences. I'm using Fig 2 of your paper as a
+    reference, so it proceeds from ciphertext to plaintext (not
+    that it matters to the attack).</p>
+
+    
+<p>The numbers are the bitwise (xor) differences for each 32
+    bit word (XXXXXXXX means the difference could be anything), and
+    the top set of numbers is the left-hand side half-block, and
+    the bottom set of numbers is the right-hand side. In other
+    words, for each round, the bottom figures are sent through the
+    Q array, and xored into the top, and then the bottom and top
+    are swapped.</p>
+
+    
+<p>The ellipsis on either side of the half-block refer to the
+    rest of the data in the half-block, and is either 00000000 (no
+    differences) or XXXXXXXX (unknown difference) -- the first/last
+    word in the half-block will tell you which.</p>
+
+    
+<p>The actual differences occur somewhere in the middle of the
+    half-block (exactly where doesn't matter too much, but it
+    shouldn't be too close to either side).</p>
+
+    
+<p>Before/after initial whitening, it looks like:</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000001 00000100
+      00010000 01000001 00000001 00010000 00010001</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000100
+      00000001 00000101 00000001 00000001 00000001 00000000
+      ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000000 00000000
+      00000000 00000000 00000000 00000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      00000000 00000000 00000000 00000000 00000000 00000000
+      ...</font>
+    
+</div>
+
+    
+<p>After round 1, it (naturally) looks like</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000000 00000000
+      00000000 00000000 00000000 00000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      00000000 00000000 00000000 00000000 00000000 00000000
+      ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000001 00000100
+      00010000 01000001 00000001 00010000 00010001</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000100
+      00000001 00000101 00000001 00000001 00000001 00000000
+      ...</font>
+    
+</div>
+
+    
+<p>After round 2, it looks like:</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000001 00000100
+      00010000 01000001 00000001 00010000 00010001</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000100
+      00000001 00000101 00000001 00000001 00000001 00000000
+      ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000100 00000000
+      01000000 00000000 00001000 00000000 01000100</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      00000100 00000000 00000100 00000000 00000100 00000000
+      ...</font>
+    
+</div>
+
+    
+<p>The trick here is that the 128 output coming down out of the
+    Q box after the last delta has a high probability of having
+    zero difference, and so the difference does not propagate to
+    the rest of the block. Continuing,</p>
+
+    
+<p>After round 3, it looks like:</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000100 00000000
+      01000000 00000000 00001000 00000000 01000100</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      00000100 00000000 00000100 00000000 00000100 00000000
+      ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00010001 01000100
+      00010000 01010001 00010001 00010000 00010001</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000100
+      00010001 01000101 00000001 00010001 00010001 00000000
+      ...</font>
+    
+</div>
+
+    
+<p>(Same trick as last round)</p>
+
+    
+<p>After round 4, it looks like:</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00010001 01000100
+      00010000 01010001 00010001 00010000 00010001</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000100
+      00010001 01000101 00000001 00010001 00010001 00000000
+      ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 01000000 00000000
+      00000000 00000000 01000000 00000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      01000000 00000000 00000000 00000000 01000000 00000000
+      ...</font>
+    
+</div>
+
+    
+<p>(Same trick)</p>
+
+    
+<p>Now, at round 5, it starts to break down:</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 01000000 00000000
+      00000000 00000000 01000000 00000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      01000000 00000000 00000000 00000000 01000000 00000000
+      ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX ...</font>
+    
+</div>
+
+    
+<p>And, after round 6,</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">...&nbsp;XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX ...</font>
+    
+</div>
+
+    
+<p>And, after post-whitening, that's what it outputs. If we
+    place the initial difference near the middle of the
+    half-blocks, then the whole front of the left hand half block
+    (which might be 1024 bytes) is absolutely identical between the
+    two resulting plaintexts, and that is not profoundly likely to
+    happen with a truly random function.</p>
+
+    
+<p>This differential assume that the adds in the Q box treat
+    the bit differences exactly like an XOR would -- this actually
+    occurs with probability 0.5, and since I count a total of 94
+    nontrivial bitpositions added, this results in the differential
+    probability. If the adds were replaced by xors, this should be
+    a probability 1 differential.</p>
+
+    
+<p>One thing I haven't done is taken a copy of Mercy, replaced
+    the adds with xors, and expirementally tried it. Just too lazy
+    at the moment.</p>
+
+    
+<p>Much more efficient differentials exist for 5 rounds
+    (probability 2**-25), and even better for 4 rounds (probability
+    2**-7). The technique I'm using runs out of gas after 6 rounds
+    -- no similar differential exists at any probability level for
+    7 rounds.</p>
+
+    
+<p>Another method of generating differentials would involve
+    starting off with nonzero differences in both halves. I haven't
+    investigated this -- you don't get the first round "for free",
+    but it may lead to higher differential probabilities
+    overall.</p>
+
+    
+<h2>Seven round attack</h2>
+
+    
+<p>Hi,</p>
+
+    
+<p>I've been working a bit more with it, and I've found a much
+    better differential. It holds with probability 2**-30, and it
+    can be used against 7 round Mercy (!). Against standard (6
+    round) Mercy, you can lop off a round, increasing the
+    probability to 2**-26, or you can keep it, which allows you to
+    isolate individual T box accesses. In addition, I suspect that
+    it can be used as the basis of a boomarang attack against 10
+    round Mercy with probability slightly better than brute
+    force.</p>
+
+    
+<p> This differential uses the same basic approach. Here is how
+    it looks (using the same syntax as before):</p>
+
+    
+<p>Before/after initial whitening, it looks like:</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 80008000 00000000
+      80000000 00000000 00000000 00000000 00008000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      80008000 00000000 ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00800000 80000000
+      00000000 00800000 00000000 80000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00800000
+      00800000 00000000 ...</font>
+    
+</div>
+
+    
+<p>After round 1, with probability 2**-4,</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00800000 80000000
+      00000000 00800000 00000000 80000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00800000
+      00800000 00000000 ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00008000 00000000
+      80000000 00000000 00000000 00000000 00008000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;00000000 00008000 00000000 ...</font>
+    
+</div>
+
+    
+<p>After round 2, with probability 2**-11,</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00008000 00000000
+      80000000 00000000 00000000 00000000 00008000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;00000000 00008000 00000000 ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000000 00000000
+      00000000 00000000 00000000 00000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      00000000 00000000 ...</font>
+    
+</div>
+
+    
+<p>After round 3, with probability 1,</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00000000 00000000
+      00000000 00000000 00000000 00000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      00000000 00000000 ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00008000 00000000
+      80000000 00000000 00000000 00000000 00008000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;00000000 00008000 00000000 ...</font>
+    
+</div>
+
+    
+<p>After round 4, with probability 2**-11,</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00008000 00000000
+      80000000 00000000 00000000 00000000 00008000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;00000000 00008000 00000000 ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00800000 80000000
+      00000000 00800000 00000000 80000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00800000
+      00800000 00000000 ...</font>
+    
+</div>
+
+    
+<p>After round 5, with probability 2**-4</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 00800000 80000000
+      00000000 00800000 00000000 80000000 00000000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00800000
+      00800000 00000000 ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 80008000 00000000
+      80000000 00000000 00000000 00000000 00008000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      80008000 00000000 ...</font>
+    
+</div>
+
+    
+<p>After round 6, with probability 1</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 80008000 00000000
+      80000000 00000000 00000000 00000000 00008000</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">&nbsp;&nbsp;&nbsp; 00000000
+      80008000 00000000 ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;XXXXXXXX XXXXXXXX XXXXXXXX ...</font>
+    
+</div>
+
+    
+<p>After round 7, and after post whitening, with probability
+    1</p>
+
+    
+<div>
+      
+<font face="Courier" size="2">... 00000000 XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;XXXXXXXX XXXXXXXX XXXXXXXX ...</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">...&nbsp;XXXXXXXX XXXXXXXX
+      XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX XXXXXXXX</font>
+    
+</div>
+
+    
+<div>
+      
+<font face="Courier" size="2">
+      &nbsp;&nbsp;&nbsp;&nbsp;XXXXXXXX XXXXXXXX XXXXXXXX ...</font>
+    
+</div>
+
+    
+<p>Again, this differential works by cleverly arranging things
+    so that the differential of the vertical components within the
+    Q-array is 0 with high probability immeditately after the
+    difference, preventing the differences from avalanching.</p>
+
+    
+<p>I also moved the differences from the least significant bit
+    in each byte to the most significant -- this is a gain because
+    an add always treats a difference in the MSBit exactly as an
+    xor does, and so any add in that bit position does not change
+    the overall probability.</p>
+
+    
+<p>I forgot to mention it, but these differentials are
+    sensitive to the overall Festel structure (Fig 2 of the paper),
+    and the exact Q box and M box definition. It does not care what
+    the T box does, or the spice/key schedule. For the T box, it
+    maintains the inputs for all T boxes until the last two rounds
+    (when it is too late to matter).</p>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mercy</a> &gt;
+      Fluhrer attack</p>
+</body>
+
+</html>

@@ -1,0 +1,152 @@
+<!-- -*- mode: xml -*- -->
+<!--Converted with LaTeX2HTML 99.2beta6 (1.42)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Avalanche and certificational weaknesses</title>
+    <meta name="description" content="Avalanche and certificational weaknesses"/>
+    <meta name="keywords" content="mercy-paper"/>
+    <meta name="resource-type" content="document"/>
+    <meta name="distribution" content="global"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta name="Generator" content="LaTeX2HTML v99.2beta6"/>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <link rel="STYLESHEET" href="mercy-paper.css"/>
+    <link rel="next" href="mercy_design_goals.html"/>
+    <link rel="previous" href="introduction.html"/>
+    <link rel="up" href="./"/>
+    <link rel="next" href="mercy_design_goals.html"/>
+    <meta name="MSSmartTagsPreventParsing" content="TRUE"/>
+  </head>
+
+  <body bgcolor="white">
+    <!--Navigation Panel--><a id="tex2html50" name="tex2html50" href="mercy_design_goals.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html48" name="tex2html48" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html42" name="tex2html42" href="introduction.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html51" name="tex2html51" href="mercy_design_goals.html" shape="rect">Mercy design goals</a> <strong>
+    Up:</strong> <a id="tex2html49" name="tex2html49" href="./" shape="rect">
+    Mercy: a fast large</a> <strong> Previous:</strong> <a id="tex2html43" name="tex2html43" href="introduction.html" shape="rect">
+    Introduction</a>
+    <br clear="none"/>
+    <br clear="none"/>
+     <!--End of Navigation Panel--></p>
+
+    <h1>
+<a id="SECTION00020000000000000000" name="SECTION00020000000000000000" shape="rect"/>
+<a id="sec:collision" name="sec:collision" shape="rect"/>
+    <br clear="none"/>
+     Avalanche and certificational weaknesses</h1>
+
+    <p>[<a href="bibliography.html#bidirmac" shape="rect">14</a>] presents an
+    attack on bidirectional MACs based on inducing collisions in
+    the internal state of the MAC. This attack can be extended to
+    show a certificational weakness in some large block cipher
+    proposals. Note that neither keys nor plaintext can be
+    recovered using this attack; it merely serves to distinguish
+    the cipher from a random permutation.</p>
+
+    <p>In general form, the attack proceeds as follows. The bits in
+    the plaintext are divided into two categories, ``fixed'' and
+    ``changing''; a selection of the bits of the ciphertext are
+    chosen as ``target'' bits. A number of chosen plaintexts are
+    encrypted, all with the same fixed bits and with changing bits
+    chosen at random; the attack is a success if a collision in the
+    target bits of the ciphertext is generated. Let <img width="23" height="28" align="MIDDLE" border="0" src="img1.png" alt="$ w_k $"/> be the length of the key, <img width="21" height="28" align="MIDDLE" border="0" src="img2.png" alt="$ w_t $"/> the number of target bits, and <img width="29" height="14" align="BOTTOM" border="0" src="img3.png" alt="$ 2^{w_p} $"/> be the number of different plaintexts
+    encrypted: if the following conditions are met:</p>
+
+    <ul>
+      <li>the result is statistically significant, ie the
+      probability of seeing such a collision under these
+      circumstances from a genuine PRP (approximately <!-- MATH
+             $2^{2w_p - w_t - 1}$
+             --> <img width="76" height="16" align="BOTTOM" border="0" src="img4.png" alt="$ 2^{2w_p - w_t - 1} $"/>) is
+      small; and</li>
+
+      <li>
+<!-- MATH
+             $w_p < w_k -1$
+             -->
+<img width="91" height="28" align="MIDDLE" border="0" src="img5.png" alt="$ w_p < w_k -1 $"/>, ie
+      the work factor for the attack is less than that for a key
+      guessing attack against the cipher</li>
+    </ul>
+
+    <p>then a certificational weakness has been demonstrated. The
+    attack works by inducing an internal collision in the data path
+    from the changing bits to the fixed bits; the width of this
+    path determines the number of plaintexts needed and thus the
+    smallest <img width="23" height="28" align="MIDDLE" border="0" src="img6.png" alt="$ w_p $"/> for which the attack can work
+    provides a useful quantitative measure of avalanche. This
+    attack can easily be converted to use the memory-efficient
+    parallel collision finding techniques of [<a href="bibliography.html#parallelcollision" shape="rect">20</a>], so memory
+    usage does not present a serious obstacle to the practicality
+    of the attack if <img width="29" height="14" align="BOTTOM" border="0" src="img3.png" alt="$ 2^{w_p} $"/> adaptive chosen
+    plaintexts can be encrypted.</p>
+
+    <p>This attack may be applied to [<a href="bibliography.html#onvariable" shape="rect">2</a>] by choosing the
+    first two blocks of the plaintext as the ``changing'' bits, and
+    all of the output except the second two blocks as the
+    ``target'' bits. If the blocksize of the underlying cipher is
+    64 bits, then <img width="26" height="16" align="BOTTOM" border="0" src="img7.png" alt="$ 2^{33} $"/>chosen plaintexts
+    should be sufficient to induce a collision in <img width="14" height="14" align="BOTTOM" border="0" src="img8.png" alt="$ \sigma $"/>, resulting in a collision in all the target
+    bits as desired; if it is 128 bits, <img width="26" height="16" align="BOTTOM" border="0" src="img9.png" alt="$ 2^{65} $"/>
+    will be needed.</p>
+
+    <p>This attack also extends to bidirectional chaining systems,
+    in which the plaintext is encrypted first forwards and then
+    backwards using a standard block cipher in a standard chaining
+    mode; in this case, the first two blocks are the changing bits,
+    all of the ciphertext except the first two blocks are the
+    target bits, and the number of plaintexts required are as
+    before; the collision is induced in the chaining state after
+    the first two blocks. If the chaining mode is CBC or CFB, all
+    of the output except the first block will be target bits, since
+    a collision in the internal state after the second block means
+    that the second block of ciphertext is identical.</p>
+
+    <p>Note that this attack is not applicable to any of the
+    proposals in [<a href="bibliography.html#bearlion" shape="rect">1</a>];
+    neither BEAR nor LION claim to be resistant to any kind of
+    chosen plaintext attack, while LIONESS carries 256 or 320 bits
+    of data between the two halves (depending on the underlying
+    hash function), which would require <img width="32" height="16" align="BOTTOM" border="0" src="img10.png" alt="$ 2^{129} $"/>
+    or <img width="32" height="16" align="BOTTOM" border="0" src="img11.png" alt="$ 2^{161} $"/> chosen plaintexts; this is
+    outside the security goals of the cipher. However, it can be
+    applied to BEAST from [<a href="bibliography.html#beast" shape="rect">11</a>] by inducing a collision
+    in the SHA-1 hash of <img width="30" height="15" align="BOTTOM" border="0" src="img12.png" alt="$ R^{**} $"/> with <img width="26" height="16" align="BOTTOM" border="0" src="img13.png" alt="$ 2^{81} $"/> chosen plaintexts; the
+    changing bits are the first 160 bits of <img width="30" height="15" align="BOTTOM" border="0" src="img12.png" alt="$ R^{**} $"/>, and the target bits are all of the
+    ciphertext except the first 160 bits of <img width="30" height="14" align="BOTTOM" border="0" src="img14.png" alt="$ T^{**} $"/>. This attack is clearly impractical at the
+    moment but it violates our expectation that the cheapest way to
+    distinguish a block cipher from a random permutation should be
+    a brute force key guessing attack.</p>
+    <hr/>
+    <!--Navigation Panel--><a id="tex2html50" name="tex2html50" href="mercy_design_goals.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html48" name="tex2html48" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html42" name="tex2html42" href="introduction.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html51" name="tex2html51" href="mercy_design_goals.html" shape="rect">Mercy design goals</a> <strong>
+    Up:</strong> <a id="tex2html49" name="tex2html49" href="./" shape="rect">
+    Mercy: a fast large</a> <strong> Previous:</strong> <a id="tex2html43" name="tex2html43" href="introduction.html" shape="rect">
+    Introduction</a> <!--End of Navigation Panel--></p>
+
+    <address>
+      mercy@paul.cluefactory.org.uk
+    </address>
+  </body>
+</html>

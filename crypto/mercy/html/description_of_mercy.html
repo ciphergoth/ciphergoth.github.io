@@ -1,0 +1,626 @@
+<!-- -*- mode: xml -*- -->
+<!--Converted with LaTeX2HTML 99.2beta6 (1.42)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Description of Mercy</title>
+    <meta name="description" content="Description of Mercy"/>
+    <meta name="keywords" content="mercy-paper"/>
+    <meta name="resource-type" content="document"/>
+    <meta name="distribution" content="global"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta name="Generator" content="LaTeX2HTML v99.2beta6"/>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <link rel="STYLESHEET" href="mercy-paper.css"/>
+    <link rel="next" href="design_of_mercy.html"/>
+    <link rel="previous" href="mercy_design_goals.html"/>
+    <link rel="up" href="./"/>
+    <link rel="next" href="design_of_mercy.html"/>
+    <meta name="MSSmartTagsPreventParsing" content="TRUE"/>
+  </head>
+
+  <body bgcolor="white">
+    <!--Navigation Panel--><a id="tex2html70" name="tex2html70" href="design_of_mercy.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html68" name="tex2html68" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html62" name="tex2html62" href="mercy_design_goals.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html71" name="tex2html71" href="design_of_mercy.html" shape="rect">Design of Mercy</a> <strong>
+    Up:</strong> <a id="tex2html69" name="tex2html69" href="./" shape="rect">
+    Mercy: a fast large</a> <strong> Previous:</strong> <a id="tex2html63" name="tex2html63" href="mercy_design_goals.html" shape="rect">Mercy design goals</a>
+    <br clear="none"/>
+    <br clear="none"/>
+     <!--End of Navigation Panel--> <!--Table of Child-Links--> <a id="CHILD_LINKS" name="CHILD_LINKS" shape="rect">
+<strong>
+    Subsections</strong>
+</a>
+</p>
+
+    <ul>
+      <li>
+<a id="tex2html72" name="tex2html72" href="description_of_mercy.html#SECTION00041000000000000000" shape="rect">
+      T box</a>
+</li>
+
+      <li>
+<a id="tex2html73" name="tex2html73" href="description_of_mercy.html#SECTION00042000000000000000" shape="rect">
+      Operation M</a>
+</li>
+
+      <li>
+<a id="tex2html74" name="tex2html74" href="description_of_mercy.html#SECTION00043000000000000000" shape="rect">
+      Q state machine</a>
+</li>
+
+      <li>
+<a id="tex2html75" name="tex2html75" href="description_of_mercy.html#SECTION00044000000000000000" shape="rect">
+      F function</a>
+</li>
+
+      <li>
+<a id="tex2html76" name="tex2html76" href="description_of_mercy.html#SECTION00045000000000000000" shape="rect">
+      Round structure</a>
+</li>
+
+      <li>
+<a id="tex2html77" name="tex2html77" href="description_of_mercy.html#SECTION00046000000000000000" shape="rect">
+      Key schedule</a>
+</li>
+    </ul>
+    <!--End of Table of Child-Links-->
+    <hr/>
+
+    <h1>
+<a id="SECTION00040000000000000000" name="SECTION00040000000000000000" shape="rect"/>
+<a id="sec:mercyspec" name="sec:mercyspec" shape="rect"/>
+    <br clear="none"/>
+     Description of Mercy</h1>
+
+    <p>Since most of Mercy's operations are based around 32-bit
+    words, we define <!-- MATH
+         $Z_{w}=Z_{2^{32}}$
+         --> <img width="76" height="29" align="MIDDLE" border="0" src="img16.png" alt="$ Z_{w}=Z_{2^{32}} $"/>. Vectors are
+    indexed from zero, so a vector <!-- MATH
+         $P\in Z^{128}_{w}$
+         --> <img width="68" height="33" align="MIDDLE" border="0" src="img17.png" alt="$ P\in Z^{128}_{w} $"/> of 128 32-bit
+    numbers will be indexed as <!-- MATH
+         $(P_{0},P_{1},\ldots ,P_{127})$
+         --> <img width="126" height="31" align="MIDDLE" border="0" src="img18.png" alt="$ (P_{0},P_{1},\ldots ,P_{127}) $"/>. The
+    symbol <img width="16" height="28" align="MIDDLE" border="0" src="img19.png" alt="$ \oplus $"/> represents bitwise
+    exclusive OR; where <img width="16" height="28" align="MIDDLE" border="0" src="img20.png" alt="$ + $"/> appears in the
+    figures with a square box around it, it represents addition in
+    the ring <img width="25" height="29" align="MIDDLE" border="0" src="img21.png" alt="$ Z_w $"/>. Least significant and lowest
+    indexed bytes and words appear leftmost and uppermost in the
+    figures.</p>
+
+    <p>Note that some details that would be needed to build a
+    specification of Mercy-based file encryption sufficient for
+    interoperability, such as byte ordering within words, are
+    omitted since they are irrelevant for cryptanalytic
+    purposes.</p>
+
+    <h2>
+<a id="SECTION00041000000000000000" name="SECTION00041000000000000000" shape="rect">T box</a>
+</h2>
+
+    <div align="CENTER">
+      <a id="fig:tbox" name="fig:tbox" shape="rect"/>
+<a id="336" name="336" shape="rect"/> 
+
+      <table>
+        <caption align="BOTTOM">
+           <strong>Figure 1:</strong> T box
+        </caption>
+
+        <tr>
+          <td rowspan="1" colspan="1">
+            <div align="CENTER">
+              <!-- MATH
+                             $\includegraphics{diagrams/t-table.eps}$
+                             --><img width="187" height="226" align="BOTTOM" border="0" src="img22.png" alt="\includegraphics{diagrams/t-table.eps}"/>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p>The <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box (<!-- MATH
+         $T:Z_{256}\rightarrow Z_{w}$
+         --> <img width="105" height="29" align="MIDDLE" border="0" src="img24.png" alt="$ T:Z_{256}\rightarrow Z_{w} $"/>, Figure
+    <a href="description_of_mercy.html#fig:tbox" shape="rect">1</a>) is a
+    key-dependent mapping of bytes onto words. <img width="19" height="14" align="BOTTOM" border="0" src="img25.png" alt="$ N $"/> represents multiplicative inverses in <img width="57" height="33" align="MIDDLE" border="0" src="img26.png" alt="$ GF(2^{8}) $"/> with polynomial base 
+    <!-- MATH
+         $x^{8}+x^{4}+x^{3}+x+1$
+         --> <img width="148" height="33" align="MIDDLE" border="0" src="img27.png" alt="$ x^{8}+x^{4}+x^{3}+x+1 $"/> except that
+    <img width="68" height="31" align="MIDDLE" border="0" src="img28.png" alt="$ N(0)=0 $"/>. <!-- MATH
+         $d_{0}\ldots d_{7}$
+         --> <img width="59" height="29" align="MIDDLE" border="0" src="img29.png" alt="$ d_{0}\ldots d_{7} $"/> are key
+    dependent bijective affine mappings on <img width="57" height="33" align="MIDDLE" border="0" src="img30.png" alt="$ GF(2)^{8} $"/>. <!-- MATH
+         \begin{displaymath}
+        T(x)=\sum ^{3}_{i=0}2^{8i}d_{2i+1}[N(d_{2i}[x])]
+        \end{displaymath}
+         --></p>
+
+    <div align="CENTER">
+      <img width="213" height="65" align="MIDDLE" border="0" src="img31.png" alt="$\displaystyle T(x)=\sum ^{3}_{i=0}2^{8i}d_{2i+1}[N(d_{2i}[x])]$"/>
+    </div>
+
+    <h2>
+<a id="SECTION00042000000000000000" name="SECTION00042000000000000000" shape="rect">Operation M</a>
+</h2>
+
+    <div align="CENTER">
+      <a id="fig:mop" name="fig:mop" shape="rect"/>
+<a id="338" name="338" shape="rect"/> 
+
+      <table>
+        <caption align="BOTTOM">
+           <strong>Figure 2:</strong> Operation M
+        </caption>
+
+        <tr>
+          <td rowspan="1" colspan="1">
+            <div align="CENTER">
+              <!-- MATH
+                             $\includegraphics{diagrams/m-op.eps}$
+                             --><img width="229" height="214" align="BOTTOM" border="0" src="img32.png" alt="\includegraphics{diagrams/m-op.eps}"/>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p>
+<!-- MATH
+         $M:Z_{w}\rightarrow Z_{w}$
+         --> <img width="102" height="29" align="MIDDLE" border="0" src="img33.png" alt="$ M:Z_{w}\rightarrow Z_{w} $"/> (Figure
+    <a href="description_of_mercy.html#fig:mop" shape="rect">2</a>) is drawn
+    from David Wheeler's stream cipher WAKE [<a href="bibliography.html#wake" shape="rect">21</a>]; it's a simple,
+    key-dependent mapping on 32-bit words. The most significant
+    byte of the input word is looked up in the <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box, and the output XORred with the other three
+    bytes shifted up eight bits; the construction of the <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box ensures that this mapping is
+    bijective. <!-- MATH
+         \begin{displaymath}
+        M(x)=2^{8}x\oplus T\left( \left\lfloor x/2^{24}\right\rfloor \right)
+        \end{displaymath}
+         --></p>
+
+    <div align="CENTER">
+      <img width="190" height="35" align="MIDDLE" border="0" src="img34.png" alt="$\displaystyle M(x)=2^{8}x\oplus T\left( \left\lfloor x/2^{24}\right\rfloor \right) $"/>
+    </div>
+
+    <h2>
+<a id="SECTION00043000000000000000" name="SECTION00043000000000000000" shape="rect">Q state machine</a>
+</h2>
+
+    <div align="CENTER">
+      <a id="fig:qop" name="fig:qop" shape="rect"/>
+<a id="340" name="340" shape="rect"/> 
+
+      <table>
+        <caption align="BOTTOM">
+           <strong>Figure 3:</strong> Q state machine
+        </caption>
+
+        <tr>
+          <td rowspan="1" colspan="1">
+            <div align="CENTER">
+              <!-- MATH
+                             $\includegraphics{diagrams/q-op.eps}$
+                             --><img width="192" height="293" align="BOTTOM" border="0" src="img35.png" alt="\includegraphics{diagrams/q-op.eps}"/>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p>The <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/> state machine (Figure <a href="description_of_mercy.html#fig:qop" shape="rect">3</a>) maps a
+    four-word initial state and one word input onto a four-word
+    final state and one word output (<!-- MATH
+         $Q:Z_{w}^{4}\times Z_{w}\rightarrow Z_{w}^{4}\times
+        Z_{w}$
+         --> <img width="178" height="33" align="MIDDLE" border="0" src="img37.png" alt="$ Q:Z_{w}^{4}\times Z_{w}\rightarrow Z_{w}^{4}\times Z_{w} $"/>
+    ) using taps from a linear feedback shift register and a
+    nonlinear mixing function.</p>
+
+    <div align="CENTER">
+      <a id="eqn:q" name="eqn:q" shape="rect"/>
+<!-- MATH
+             \begin{equation}
+            Q(S,x)=((S_{3}\oplus y,S_{0},S_{1},S_{2}),y)\quad \textrm{where}\quad
+            y=S_{2}+M(S_{0}+x)
+            \end{equation}
+             --> 
+
+      <table cellpadding="0" width="100%" align="CENTER">
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="CENTER" rowspan="1" colspan="1">
+<img width="447" height="31" align="MIDDLE" border="0" src="img38.png" alt="$\displaystyle Q(S,x)=((S_{3}\oplus y,S_{0},S_{1},S_{2}),y)\quad \textrm{where}\quad y=S_{2}+M(S_{0}+x)$"/>
+</td>
+
+          <td nowrap="nowrap" width="10" align="RIGHT" rowspan="1" colspan="1">(1)</td>
+        </tr>
+      </table>
+    </div>
+
+    <br clear="ALL"/>
+
+    <h2>
+<a id="SECTION00044000000000000000" name="SECTION00044000000000000000" shape="rect">F function</a>
+</h2>
+
+    <div align="CENTER">
+      <a id="fig:ffunc" name="fig:ffunc" shape="rect"/>
+<a id="342" name="342" shape="rect"/> 
+
+      <table>
+        <caption align="BOTTOM">
+           <strong>Figure 4:</strong> F function
+        </caption>
+
+        <tr>
+          <td rowspan="1" colspan="1">
+            <div align="CENTER">
+              <!-- MATH
+                             $\includegraphics{diagrams/f-func.eps}$
+                             --><img width="456" height="568" align="BOTTOM" border="0" src="img39.png" alt="\includegraphics{diagrams/f-func.eps}"/>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p>The <img width="23" height="29" align="MIDDLE" border="0" src="img40.png" alt="$ F_{n} $"/> function (<img width="43" height="28" align="MIDDLE" border="0" src="img41.png" alt="$ n\geq 8 $"/>; Figure <a href="description_of_mercy.html#fig:ffunc" shape="rect">4</a>) accepts a
+    128-bit spice <!-- MATH
+         $G\in Z_{w}^{4}$
+         --> <img width="57" height="33" align="MIDDLE" border="0" src="img42.png" alt="$ G\in Z_{w}^{4} $"/> and a <img width="30" height="14" align="BOTTOM" border="0" src="img43.png" alt="$ 32n $"/>-bit input <!-- MATH
+         $A\in Z_{w}^{n}$
+         --> <img width="57" height="29" align="MIDDLE" border="0" src="img44.png" alt="$ A\in Z_{w}^{n} $"/> and generates a
+    <img width="30" height="14" align="BOTTOM" border="0" src="img43.png" alt="$ 32n $"/>-bit output <!-- MATH
+         $B\in
+        Z_{w}^{n}$
+         --> <img width="58" height="29" align="MIDDLE" border="0" src="img45.png" alt="$ B\in Z_{w}^{n} $"/> (<!-- MATH
+         $F_{n}:Z^{n}_{w}\times Z^{4}_{w}\rightarrow Z^{n}_{w}$
+         --> <img width="144" height="33" align="MIDDLE" border="0" src="img46.png" alt="$ F_{n}:Z^{n}_{w}\times Z^{4}_{w}\rightarrow Z^{n}_{w} $"/>
+    ). <img width="28" height="29" align="MIDDLE" border="0" src="img47.png" alt="$ F_{64} $"/> (usually just <img width="16" height="14" align="BOTTOM" border="0" src="img48.png" alt="$ F $"/>) is the F function for the
+    Feistel rounds. Here <!-- MATH
+         $S_{0\ldots n+4}$
+         --> <img width="56" height="29" align="MIDDLE" border="0" src="img49.png" alt="$ S_{0\ldots n+4} $"/> represents
+    successive 128-bit states of a state machine; <!-- MATH
+         $U_{0\ldots n+3} \in Z_w$
+         --> <img width="98" height="29" align="MIDDLE" border="0" src="img50.png" alt="$ U_{0\ldots n+3} \in Z_w $"/> are the
+    successive 32-bit inputs to the state machine, and <!-- MATH
+         $V_{0\ldots n+3}
+        \in Z_w$
+         --> <img width="96" height="29" align="MIDDLE" border="0" src="img51.png" alt="$ V_{0\ldots n+3} \in Z_w $"/> are the
+    outputs.</p>
+
+    <p>
+<br clear="none"/>
+    </p>
+
+    <div align="CENTER">
+      <!-- MATH
+             \begin{eqnarray*}
+            F_{n}(A,G) & = & B\quad \textrm{where}\\
+            S_{0} & = & (A_{n-4},A_{n-3},A_{n-2},A_{n-1})\\
+            (S_{i+1},V_{i}) & = & Q(S_{i},U_{i})\qquad (0 \leq i < n+4)\\
+            U_{i} & = & \left\{ \begin{array}{ll}
+            G_{i} & (0 \leq i<4)\\
+            A_{i+n-12} & (4\leq i<8)\\
+            A_{i-8} & (8 \leq i < n)
+            \end{array}\right. \\
+            B_{i} & = & \left\{ \begin{array}{ll}
+            V_{i+8} & (i<n-4)\\
+            S_{n+4,i+4-n} & (n-4 \leq i < n)
+            \end{array}\right.
+            \end{eqnarray*}
+             -->
+
+      <table cellpadding="0" align="CENTER" width="100%">
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="67" height="31" align="MIDDLE" border="0" src="img52.png" alt="$\displaystyle F_{n}(A,G)$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="74" height="29" align="MIDDLE" border="0" src="img54.png" alt="$\displaystyle B\quad \textrm{where}$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="21" height="29" align="MIDDLE" border="0" src="img55.png" alt="$\displaystyle S_{0}$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="185" height="31" align="MIDDLE" border="0" src="img56.png" alt="$\displaystyle (A_{n-4},A_{n-3},A_{n-2},A_{n-1})$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="69" height="31" align="MIDDLE" border="0" src="img57.png" alt="$\displaystyle (S_{i+1},V_{i})$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="204" height="31" align="MIDDLE" border="0" src="img58.png" alt="$\displaystyle Q(S_{i},U_{i})\qquad (0 \leq i < n+4)$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="20" height="29" align="MIDDLE" border="0" src="img59.png" alt="$\displaystyle U_{i}$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="164" height="73" align="MIDDLE" border="0" src="img60.png" alt="$\displaystyle \left\{ \begin{array}{ll} G_{i} &amp; (0 \leq i<4)\ A_{i+n-12} &amp; (4\leq i<8)\ A_{i-8} &amp; (8 \leq i < n) \end{array}\right.$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="21" height="29" align="MIDDLE" border="0" src="img61.png" alt="$\displaystyle B_{i}$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="210" height="54" align="MIDDLE" border="0" src="img62.png" alt="$\displaystyle \left\{ \begin{array}{ll} V_{i+8} &amp; (i<n-4)\ S_{n+4,i+4-n} &amp; (n-4 \leq i < n) \end{array}\right.$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+      </table>
+    </div>
+
+    <br clear="ALL"/>
+
+    <h2>
+<a id="SECTION00045000000000000000" name="SECTION00045000000000000000" shape="rect">Round structure</a>
+</h2>
+
+    <div align="CENTER">
+      <a id="fig:rounds" name="fig:rounds" shape="rect"/>
+<a id="344" name="344" shape="rect"/> 
+
+      <table>
+        <caption align="BOTTOM">
+           <strong>Figure 5:</strong> Round structure (decryption
+          illustrated)
+        </caption>
+
+        <tr>
+          <td rowspan="1" colspan="1">
+            <div align="CENTER">
+              <!-- MATH
+                             $\includegraphics{diagrams/rounds.eps}$
+                             --><img width="278" height="466" align="BOTTOM" border="0" src="img63.png" alt="\includegraphics{diagrams/rounds.eps}"/>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <p>Mercy uses a six round Feistel structure (Figure <a href="description_of_mercy.html#fig:rounds" shape="rect">5</a>) with partial
+    pre- and post-whitening; unusually, the final swap is <strong>
+    not</strong> omitted. The spice <!-- MATH
+         $G\in Z^{4}_{w}$
+         --> <img width="57" height="33" align="MIDDLE" border="0" src="img64.png" alt="$ G\in Z^{4}_{w} $"/> (usually the sector
+    number) goes through a ``spice scheduling'' procedure,
+    analogous with key scheduling, through which the ``spice
+    material'' <!-- MATH
+         $G'\in Z_{w}^{24}$
+         --> <img width="66" height="33" align="MIDDLE" border="0" src="img65.png" alt="$ G'\in Z_{w}^{24} $"/> is generated
+    based on the input spice, using the <img width="28" height="29" align="MIDDLE" border="0" src="img66.png" alt="$ F_{24} $"/>
+    variant of the <img width="16" height="14" align="BOTTOM" border="0" src="img48.png" alt="$ F $"/> function; this forms
+    six 128-bit ``round spices''. Spice scheduling uses a dummy
+    input to the F function; for this a vector of incrementing
+    bytes <!-- MATH
+         $H \in Z_w^{24}$
+         --> <img width="64" height="33" align="MIDDLE" border="0" src="img67.png" alt="$ H \in Z_w^{24} $"/>is used. <!-- MATH
+         $P\in Z_{w}^{128}$
+         --> <img width="68" height="33" align="MIDDLE" border="0" src="img68.png" alt="$ P\in Z_{w}^{128} $"/> represents the
+    plaintext, <!-- MATH
+         $C\in
+        Z^{128}_{w}$
+         --> <img width="68" height="33" align="MIDDLE" border="0" src="img69.png" alt="$ C\in Z^{128}_{w} $"/> the ciphertext,
+    and <!-- MATH
+         $W_0, W_1 \in Z_{w}^{64}$
+         --> <img width="100" height="33" align="MIDDLE" border="0" src="img70.png" alt="$ W_0, W_1 \in Z_{w}^{64} $"/> the
+    whitening values. We describe decryption below; since Mercy is
+    a straightforward Feistel cipher encryption follows in the
+    straightforward way.
+    <br clear="none"/>
+    </p>
+
+    <div align="CENTER">
+      <!-- MATH
+             \begin{eqnarray*}
+            H_{i} & = & \sum ^{3}_{j=0}2^{8j}(4i+j)\\
+            G' & = & F_{24}(H, G)\\
+            (L_{0},R_{0}) & = & (C_{0\ldots 63},C_{64\ldots 127} \oplus W_1)\\
+            (L_{i+1},R_{i+1}) & = & (R_{i},L_{i}\oplus F_{64}(R_{i},G'_{4i\ldots
+            4i+3}))\qquad (0\leq i<6)\\
+            (P_{0\ldots 63},P_{64\ldots 127}) & = & (L_{6} \oplus W_0, R_{6})
+            \end{eqnarray*}
+             -->
+
+      <table cellpadding="0" align="CENTER" width="100%">
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="23" height="29" align="MIDDLE" border="0" src="img71.png" alt="$\displaystyle H_{i}$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="104" height="65" align="MIDDLE" border="0" src="img72.png" alt="$\displaystyle \sum ^{3}_{j=0}2^{8j}(4i+j)$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="21" height="33" align="MIDDLE" border="0" src="img73.png" alt="$\displaystyle G'$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="73" height="31" align="MIDDLE" border="0" src="img74.png" alt="$\displaystyle F_{24}(H, G)$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="61" height="31" align="MIDDLE" border="0" src="img75.png" alt="$\displaystyle (L_{0},R_{0})$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="163" height="31" align="MIDDLE" border="0" src="img76.png" alt="$\displaystyle (C_{0\ldots 63},C_{64\ldots 127} \oplus W_1)$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="89" height="31" align="MIDDLE" border="0" src="img77.png" alt="$\displaystyle (L_{i+1},R_{i+1})$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="307" height="33" align="MIDDLE" border="0" src="img78.png" alt="$\displaystyle (R_{i},L_{i}\oplus F_{64}(R_{i},G'_{4i\ldots 4i+3}))\qquad (0\leq i<6)$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="119" height="31" align="MIDDLE" border="0" src="img79.png" alt="$\displaystyle (P_{0\ldots 63},P_{64\ldots 127})$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="102" height="31" align="MIDDLE" border="0" src="img80.png" alt="$\displaystyle (L_{6} \oplus W_0, R_{6})$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+      </table>
+    </div>
+
+    <br clear="ALL"/>
+
+    <h2>
+<a id="SECTION00046000000000000000" name="SECTION00046000000000000000" shape="rect">Key schedule</a>
+</h2>
+
+    <p>The key is used to seed a CPRNG from which key material is
+    drawn; [<a href="bibliography.html#rc4" shape="rect">10</a>] is used in the
+    sample implementation (after discarding 256 bytes of output),
+    and is convenient since it's small and byte oriented, but any
+    strong CPRNG will serve. Then the procedure in Figure <a href="description_of_mercy.html#fig:keysched" shape="rect">6</a> generates
+    the substitutions <!-- MATH
+         $d_{0\ldots 7}$
+         --> <img width="37" height="29" align="MIDDLE" border="0" src="img81.png" alt="$ d_{0\ldots 7} $"/> and the 2048-bit
+    whitening values <!-- MATH
+         $W_{0},W_{1}$
+         --> <img width="56" height="29" align="MIDDLE" border="0" src="img82.png" alt="$ W_{0},W_{1} $"/>.</p>
+
+    <div align="CENTER">
+      <a id="fig:keysched" name="fig:keysched" shape="rect"/>
+<a id="346" name="346" shape="rect"/> 
+
+      <table>
+        <caption align="BOTTOM">
+           <strong>Figure 6:</strong> Key schedule pseudocode
+        </caption>
+
+        <tr>
+          <td rowspan="1" colspan="1">
+<img width="280" height="227" border="0" src="img83.png" alt="\begin{figure}{\hspace{1in} \vbox{\textsf{ \begin{tabbing} \textbf{for} \=\+ \( ... ...i,j} + 2^{8k} \textbf{random\_byte} () \)\-\-\-\ \end{tabbing}}}} \end{figure}"/>
+</td>
+        </tr>
+      </table>
+    </div>
+
+    <p>An expected 10.6 random bytes will be drawn for each <img width="12" height="15" align="BOTTOM" border="0" src="img84.png" alt="$ d $"/>. Once <!-- MATH
+         $d_{0\ldots 7}$
+         --> <img width="37" height="29" align="MIDDLE" border="0" src="img81.png" alt="$ d_{0\ldots 7} $"/> have been
+    determined, a 1k table representing the <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box can be generated. During normal use 1536
+    bytes of key-dependent tables are used.</p>
+    <hr/>
+    <!--Navigation Panel--><a id="tex2html70" name="tex2html70" href="design_of_mercy.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html68" name="tex2html68" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html62" name="tex2html62" href="mercy_design_goals.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html71" name="tex2html71" href="design_of_mercy.html" shape="rect">Design of Mercy</a> <strong>
+    Up:</strong> <a id="tex2html69" name="tex2html69" href="./" shape="rect">
+    Mercy: a fast large</a> <strong> Previous:</strong> <a id="tex2html63" name="tex2html63" href="mercy_design_goals.html" shape="rect">Mercy design goals</a> 
+    <!--End of Navigation Panel--></p>
+
+    <address>
+      mercy@paul.cluefactory.org.uk
+    </address>
+  </body>
+</html>

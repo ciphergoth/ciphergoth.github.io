@@ -1,0 +1,145 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: put-homepages</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Software</a> &gt;
+      put-homepages</p>
+<h1>put-homepages</h1>
+    
+<p>put-homepages is a short Perl script for automatically updating
+    fines on a remote FTP server to match a local archive. In its
+    current incarntion it's designed for Demon Internet users
+    maintaining the Web pages served under Demon's "homepages"
+    service, but it could probably be turned to some more general
+    tasks.</p>
+
+    
+<p>In its current form, it is <em>not</em> suitable for use by
+    people who want a packaged-and-ready solution; don't download
+    it unless you hack Perl, since you'll almost certainly find
+    yourself hacking the source to make it do what you want.
+    However, if you do hack Perl, you might find it very useful for
+    maintaining your Web pages just as I do, and if you submit your
+    improvements to me we can make it more generally useful. I plan
+    to release it under the GPL, but if you need a more liberal
+    license let me know, I'm pretty likely to be amenable.</p>
+
+    
+<p>Since writing this, I've been informed of two packages that do
+    similar jobs, <a href="http://sunsite.org.uk/packages/mirror/">
+    mirror</a> and <a href="http://www.lyra.org/sitecopy/">
+    sitecopy</a>. Mirror has an irritating, barely-OSD "patch"
+    license; sitecopy is GPL. I didn't know about sitecopy when I
+    started writing this, and it may turn out to be an all-round
+    better solution.  I can now use rsync to update my website anyway,
+    so I don't use this any more.</p>
+
+    
+<p>Unsurprisingly, documentation is weak to nonexistant; if
+    some of the source is incomprehensible then feel free to ask.
+    Some facts about the script in random order:</p>
+
+    
+<ul>
+      
+<li>It keeps a copy of the current state of the FTP site in a
+      separate directory, and compares the current to the desired
+      state before connecting to the FTP server to compose a plan
+      of how to update the site. When it connects, it checks that
+      its local copy of the state is sufficiently accurate before
+      proceeding.</li>
+
+      
+<li>It uses a parser for "ls -lR" output to read the state of
+      directory trees; this is particularly efficient when querying
+      the remote site, but should do a reasonable job of the local
+      side too, and keeps everything consistent.</li>
+
+      
+<li>It will create and delete directories and files as well
+      as updating file contents to keep the two sides consistent.
+      However, it doesn't understand about renaming files - it will
+      delete the old name and upload to the new name.</li>
+
+      
+<li>Where it finds files present remotely that are not in its
+      record of the current state, it fetches those files, unless
+      the file it fetched last time appears to be up-to-date. The
+      upshot of this for Demon Internet users is that it will fetch
+      "bwusage.txt" whenever it changes.</li>
+
+      
+<li>It can be configured to retrieve the latest version of
+      your homepages from a repository of the marvellously clean
+      and straightforward revision control system <a href="http://www.xcf.berkeley.edu/~jmacd/prcs.html">PRCS</a>
+      before updating the remote site - when used in this way, it
+      ignores files present in the "new" directory that PRCS
+      disclaims.</li>
+
+      
+<li>It expects to find all the files it's going to use to
+      have specific, fixed names in a configuration directory:
+      "current" for its record of the current state of the archive,
+      "new" for the desired state, "password" for the password to
+      use on the remote FTP server, "extras" for uploading
+      unexpected remote files, "remote-state" for a directory
+      listing of the remote end potentially useful for diagnosing
+      inconsistencies, and "PRCS" for the PRCS repository.</li>
+
+      
+<li>It actually has quite a few command-line options which
+      even have a little documentation.</li>
+    
+</ul>
+
+    
+<p>I strongly recommend using the PRCS functionality of this
+    script even if you use PRCS for nothing else; it's very simple
+    to learn and does all the right things for this job. Here's how
+    I currently use this script: I've created a user "homepgs"
+    especially to manage it, and the configuration directory is
+    simply "/home/homepgs". My dialout scripts include the
+    equivalent of "su -c /home/homepgs/scripts/put-homepages
+    homepgs", so every time I dial out, the homepgs user checks out
+    the latest version of the home pages from PRCS, and if
+    necessary updates the remote FTP site. I have a local copy of
+    the pages in my home directory which I can edit freely, and I
+    check it in when it's ready for release and simply wait for the
+    next dialout from cron. Of course, PRCS is designed to handle
+    multiple users working on the same archive with grace.</p>
+
+    
+<p>Remember: read and understand this script before you try
+    and use it. But if you do, please let me know!</p>
+
+    
+<ul>
+      
+<li>
+<a href="put-homepages">put-homepages</a>
+</li>
+    
+</ul>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Software</a> &gt;
+      put-homepages</p>
+</body>
+
+</html>

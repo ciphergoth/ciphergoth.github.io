@@ -1,0 +1,148 @@
+#include <stdio.h>
+int bits_used = 0;
+unsigned int coinflip() {
+    static unsigned long y = 123;
+    y=1664525L*y+1013904223L;
+    ++bits_used;
+    printf("%d", y>>31);
+    return y >> 31;
+}
+
+unsigned long exists[32]={0}, values[32], out[1], bcount=0;
+
+#define TEST(x,a,b)  ( (x[a]>>(b)) & 1 )
+#define SET1(x,a,b)  (x[a] |= (1uL<<(b)))
+#define SET0(x,a,b)  (x[a] &=~(1uL<<(b)))
+#define SET(x,a,b,c) ((c)?SET1(x,a,b):SET0(x,a,b))
+#define FLP(x,a,b)   (x[a] ^= (1uL<<(b)))
+#define FLIP(x,a,b)  ((FLP(x,a,b)>>(b))&1)
+
+/* this uses bits 1% more efficiently than a naive selection
+   of node indices for the tree structure. */
+void flipped(int node, int len, int plen, int coin) {
+    while( node < sizeof(exists)*8 ) {
+        int a = node>>5, b = node&31;
+        if( FLIP(exists,a,b) ) {
+            SET(values,a,b,coin);
+            return;
+        }
+        if( TEST(values,a,b) == coin ) {
+            int x = len+plen;
+            /* numeric successor */
+            flipped(node+len+x+x, len+x, x, coin);
+            /* alphabetic successor:
+               flipped(node+len, len+plen, len, 0)
+               tail recursion changed to a loop. */
+            coin = 0;
+        } else {
+            SET(out,bcount>>5,bcount&31,coin);
+            ++bcount;
+            /* alphabetic successor:
+               flipped(node+len, len+plen, len, 1)
+               tail recursion changed to a loop. */
+            coin = 1;
+        }
+        node += len; len += plen; plen = len-plen;
+    }
+}
+
+int get_bit() {
+   while(bcount<=0) {
+      SET1(exists,0,0); SET(values,0,0,coinflip());
+      flipped(0,1,0,coinflip());
+   }
+   --bcount;
+   return TEST(out,bcount>>5, bcount&31);
+}
+
+void test() {
+   int i, first=1;
+   for( i = 0; (i < 8) || bcount>0; ++i) {
+      printf("%c", get_bit() ? '+' : '-');
+   }
+   printf("\n");
+}
+
+/*
+
+    The flipped() subroutine uses an array to keep track of the state
+ of a finite number of the infinite number of rows in Mitzenmacher's
+ AMLS algorithm. [Actually two arrays, but since they're of the same
+ length, considering one is sufficient.] As you keep flipping coins,
+ each row gets coin flips from its predecessor at a certain rate and
+ produces output bits at a certain rate. Ideally, we'd like to capture
+ all the output bits from all the rows. Inefficiency is caused by the
+ fact that we don't get the output bits that would have been produced
+ by the rows represented in array elements beyond the end of the array.
+    The algorithm would be most efficient if it kept the most
+ productive rows, in terms of number of output bits produced. In
+ flipped2n2n1(), the row represented in array element [n] has its
+ alphabetic successor row at array element [2n] and its numeric
+ successor row at array element [2n+1].
+    But the alphabetic successor is more productive than the numeric
+ successor. For example, when the bits from coinflip() are unbiased,
+ the alphabetic successor row is twice as productive as the numeric
+ successor row. We'd like to keep more alphabetic successor rows in
+ the array than numeric successor rows.
+   Rather than storing both successor rows near [2n], it would be
+ better to put the alphabetic successor at [1.5n] and the numeric
+ successor at [3n]. Well, that doesn't work, but...
+   Something similar can be done. Regard the rows as being in lines.
+ Put all the alphabetic successors of the rows in a given line in the
+ next line and all the numeric successors in the line after that.
+
+1st line: O, Original row.
+2nd line: A, Alphabetic successor of original row.
+3rd line: AN, Alpha successor of 2nd line, numeric of 1st line.
+4th line: AAN, Alpha successors of 3rd line, numerics of 2nd line.
+5th line: AAANN, Alphas of 4th line, numerics of 3rd line.
+6th line: AAAAANN, Alphas of 5th line, numerics of 4th line.
+...
+   The order in which the rows appear above is the order in which they
+ are represented in the array used by the Fibonacci version of
+ flipped(). For example, the 3 rows in the 4th line are in array
+ elements [4..6], just before the 5 rows in the 5th line which are in
+ array elements [7..11].
+   When the bits from coinflip() are unbiased, all the rows in a given
+ line are approximately equally productive, and approximately twice as
+ productive as the rows in the next line. Since the rows are in
+ non-increasing order of productivity, the rows in the array are all
+ at least as productive as any of the rows lost beyond the end of the
+ array, minimizing the output bits lost because of the finite size of
+ the array.
+   When there's bias, the As in a line are somewhat more productive
+ than the Ns in that line, so I put them first.
+   The number of rows in a line forms a Fibonacci series.
+
+--Mike Amling
+
+Note to self, the lines could more reasonable be labeled as:
+1st line: O
+2nd line: A
+3rd line: AA, N
+4th line: AAA,NA, AN,
+5th line: AAAA,NAA,ANA, AAN,NN
+6th line: AAAAA,NAAA,ANAA,AANA,NNA, AAAN,NAN,ANN
+But this doesn't show the fibbonnacci nature of the length clearly.
+
+The initial form used for this was:
+func( base, across, lineLen, prevLineLen ) {
+   thisNode = base+across;
+   // alphabetic:
+   func( base+lineLen, across, lineLen+prevLineLen, lineLen );
+   // numeric:
+   func( base+lineLen+prevLineLen, across+lineLen,
+         lineLen+prevLineLen*2, lineLen+prevLineLen );
+}
+
+But base+across can be combined to one term as follows:
+func( thisNode, lineLen, prevLineLen ) {
+   // alphabetic:
+   func( thisNode+lineLen, lineLen+prevLineLen, lineLen );
+   // numeric:
+   func( thisNode+lineLen+prevLineLen+lineLen,
+         lineLen+prevLineLen*2, lineLen+prevLineLen );
+}
+
+*/
+

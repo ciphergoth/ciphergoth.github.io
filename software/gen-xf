@@ -1,0 +1,67 @@
+#!/usr/bin/perl
+
+# use diagnostics;
+use strict;
+no strict 'vars';
+
+sub to_readable {
+   my $conv_f = shift;
+   return join(" ", map {sprintf("%.3f", $_ * $conv_f)} @_);
+}
+
+sub to_vidmode {
+   my $s = 0;
+   return join(" ", map {$s += $_} @_);
+}
+
+$h_res = 1152;
+$v_res = 910;
+
+$h_freq = 80.00 * 1000;
+$v_freq = 83.000;
+$dot_freq = 125.000 * 1000000;
+
+$h_sync_time = 300.0 / 1000000000;
+
+$h_dots = int(0.5 + $dot_freq / $h_freq);
+$h_freq = $dot_freq / $h_dots;
+$h_dots_remaining = $h_dots - $h_res;
+$h_dots_remaining -= ($h_sync_dots = int(0.5 + $h_sync_time * $dot_freq));
+$h_dots_remaining -= ($h_lead_in_dots = int($h_dots_remaining * 0.8));
+$h_lead_out_dots = $h_dots_remaining;
+
+@h_sum = ($h_res, $h_lead_out_dots, $h_sync_dots, $h_lead_in_dots);
+
+$v_sync_time = 140.0 / 1000000;
+
+$v_lines = int(0.5 + $h_freq / $v_freq);
+$v_freq = $h_freq / $v_lines;
+$v_lines_remaining = $v_lines - $v_res;
+$v_lines_remaining -= ($v_sync_lines = int(0.5 + $v_sync_time * $h_freq));
+$v_lines_remaining -= ($v_lead_in_lines = int($v_lines_remaining * 0.7));
+$v_lead_out_lines = $v_lines_remaining;
+
+@v_sum = ($v_res, $v_lead_out_lines, $v_sync_lines, $v_lead_in_lines);
+
+$dots_to_us = 1000000 / $dot_freq;
+$lines_to_ms = 1000 / $h_freq;
+
+$mode_name = "\"", $h_res, "x", $v_res, "\"";
+
+#print "    Mode $mode_name\n";
+#print "        DotClock ", $dot_freq / 1000000, "\n";
+#print "        # ", to_readable($dots_to_us, @h_sum), " us\n";
+#print "        HTimings   ", to_vidmode(@h_sum), "\n";
+#print "        # ", to_readable($lines_to_ms, @v_sum), " ms\n";
+#print "        VTimings   ", to_vidmode(@v_sum), "\n";
+#print "    EndMode";
+
+$modeline = $dot_freq / 1000000 . " " . 
+      to_vidmode(@h_sum) . " " . to_vidmode(@v_sum);
+
+while(<>) {
+   if (s/NEW_MODELINE/$modeline/g) {
+       print STDERR $_;
+   }
+   print;
+}

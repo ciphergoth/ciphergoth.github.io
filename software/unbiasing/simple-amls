@@ -1,0 +1,31 @@
+#!/usr/bin/python
+
+def amls_round(stream):
+    if len(stream) < 2:
+        return []
+    res = []
+    s1 = []
+    sa = []
+    p0 = None
+    for p1 in stream:
+        if p0 == None:
+            p0 = p1
+        else:
+            if p0 == p1:
+                sa.append(0)
+                s1.append(p0)
+            else:
+                sa.append(1)
+                res.append(p0)
+            p0 = None
+    return res + amls_round(sa) + amls_round(s1)
+
+if __name__ == "__main__":
+    rn = open('/dev/urandom', 'r')
+    random_chars = rn.read(2)
+    stream = []
+    for char in random_chars:
+        c = ord(char)
+        for i in range(0,8):
+            stream.append((c >> i) & 1)
+    print amls_round(stream)

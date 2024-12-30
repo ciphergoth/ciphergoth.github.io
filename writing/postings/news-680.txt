@@ -1,0 +1,54 @@
+X-From-Line: nobody Sun May 16 12:24:13 1999
+Newsgroups: uk.people.bdsm
+Subject: Re: Re Cocaine and the scene was parties
+References: <373c1389.552655@news.demon.co.uk>  <memo.19990514223458.254G@smtpeval.dircon.co.uk>  <373ca4ac.85647087@news.demon.co.uk> <RNq2sFAMILP3Ewvc@twilight.demon.co.uk>  <5ZsE5MADeMP3Ywj1@janusbreed.demon.co.uk>  <86g14y368x.fsf@hedonism.demon.co.uk> <Z1rdmCAXMYP3Ywld@janusbreed.demon.co.uk>
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 16 May 1999 12:24:13 +0100
+Message-ID: <87yaipqmua.fsf@hedonism.demon.co.uk>
+X-Newsreader: Gnus v5.5/XEmacs 20.4 - "Emerald"
+Lines: 41
+Xref: hedonism.demon.co.uk misc-news:680
+X-Gnus-Article-Number: 680   Sun May 16 12:24:13 1999
+
+Master Laurence <master@janusbreed.demon.co.uk> writes:
+> > There must have been quite 
+> >a few players on some kind of drug over the years who were not
+> >sufficiently out of it to be a risk.
+
+> Again, I'm sure you are right however at the end of the day we have to
+> draw a line someplace and if someone is felt to be 'unsafe' then
+> intervention will happen.
+
+It sounds from your description as if you're drawing an entirely
+appropriate line *in practice*, but your description of it says
+something about "drugs" which serves only to muddy the waters.  It
+seems to me there are four cases:
+
+A: Unsafe players who haven't taken drugs - will be stopped
+
+B: Safe players who haven't taken drugs - can continue
+
+C: Unsafe players who have taken drugs - will be stopped
+
+D: Safe players who have taken drugs - can in practice continue, since 
+you can't tell.
+
+Clearly, this policy is best described without reference to drugs.  If 
+you're playing safely, you can go ahead.  If you're playing unsafely,
+it doesn't matter whether it's because you're off your head, because
+you've had a bad day or because you're just plain careless - the club
+will intervene.
+
+A policy is something like a computer program, in that it's intended
+to be a description of an algorithm, in this case an algorithm by
+which other people can make better guesses about when you'll
+intervene, so that you can be seen to be fair.  Good policy design
+shares some traits with good computer programming: predictable
+outcomes, generality, and clean design. The applicable maxim here is:
+"a designer knows he has achieved perfection not when there is nothing
+left to add, but when there is nothing left to take away."
+-- 
+  __
+\/ o\ paul@hedonism.demon.co.uk  http://www.hedonism.demon.co.uk/paul/ \ /
+/\__/ Paul Crowley            Upgrade your legacy NT machines to Linux /~\
+

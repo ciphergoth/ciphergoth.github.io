@@ -1,0 +1,148 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Cryptanalysis of Carl Ellison's
+    des|tran|des|tran|des</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      des|tran|des|tran|des</p>
+<h1>Cryptanalysis of Carl Ellison's
+    des|tran|des|tran|des</h1>
+    
+<p> Carl Ellison proposes a large-block variant of triple-DES
+    based on an unkeyed reversible mixing function, <a href="http://world.std.com/~cme/code/">tran</a>, which takes an
+    8192 byte (65536-bit) input block, seeds a PRNG with a
+    histogram of the bytes in the block, and shuffles the bytes
+    based on the output of the PRNG using a series of swaps.
+    Because the histogram is unchanged by the shuffle, the state of
+    the PRNG can be reconstructed and the shuffle reversed.</p>
+
+    
+<p> This is then used to construct a form of inner chaining for
+    large-block triple-DES: three ECB-mode DES encryptions of the
+    65536-bit block with three different keys are interleaved with
+    two unkeyed TRAN stages. This gives a 168-bit keyspace; we
+    refer to Layers 1 - 5, where odd numbered layers are keyed DES
+    transformations, and even numbered are unkeyed <strong>
+    tran</strong> mixing layers. David Wagner <a href="http://http.cs.berkeley.edu/~daw/my-posts/des-tran-broken">
+     proposed an attack</a> on this scheme, but it turns out that
+    this attacks a variant on the scheme based on a bug in an
+    implementation of <strong>tran</strong>.</p>
+
+    
+<p> However, an attack requiring around 2^71 trial DES
+    encryptions is possible. Consider a plaintext chosen such that
+    the input to each of the DES blocks in the Layer 1 is the same.
+    Since all the outputs are the same, at most eight distinct
+    bytes are available for Layer 2 <strong>tran</strong> to
+    shuffle, and so there are only 8^8 possible inputs to each DES
+    block in Layer 3. Since there are 2^10 actual inputs, the
+    probability that two will collide is roughly 2^-5; this will
+    result in two identical 64-bit blocks in the output of Layer 3,
+    an event that would otherwise occur with probability around
+    2^-45.</p>
+
+    
+<p> The attack proceeds as follows. First, generate 128 blocks
+    of plaintext-ciphertext pairs matching the special property
+    above. With probability about 0.91, at least two of these
+    blocks will have collisions in the output of Layer 3, though of
+    course we don't yet know which two. We find out as follows:
+    take the first of the blocks and make a guess at the key for
+    Layer 5; decrypt Layer 5 of the ciphertext and then the unkeyed
+    Layer 4, and look for coincidences in the DES blocks of the
+    resulting block. A key which suggests such a collision we call
+    a "collision candidate".</p>
+
+    
+<p> Most collision candidates (all but one in 2^16) will be
+    false positives. We can test whether a candidate is genuine by
+    using it to decrypt all the other ciphertexts; if it is the
+    genuine key then it's likely to suggest a collision in another
+    block as well. Most likely, after exhaustive search of the
+    keyspace for the Layer 5 key, the first block will turn out not
+    to contain a collision that suggests the genuine key; we
+    discard it and move onto the next one.</p>
+
+    
+<p> Expressed in a C-like pseudocode:</p>
+
+<pre>
+    int candidate(key, i) {
+        return contains_coincidence(untran(decrypt(key, ctext[i])));
+    }
+    for (i = 0; i &lt; 127; i++) {
+        for (key = 0; key &lt; 2^56; key++) {
+            if (candidate(key, i)) {
+                /* This block is hit on average 2^11 times per i 
+                 * Try some other blocks to check for false positives */
+                for (j = i + 1; j &lt; 128; j++) {
+                    if (candidate(key, j)) {
+                        /* Found it */
+                        return key;
+                    }
+                }
+                /* Just another false positive, try again */
+            }
+        }
+    }
+    
+</pre>
+
+    
+<p> On average we will discard around 2^5 pairs in this way
+    before finding one with a collision that suggests the genuine
+    key to find one containing a collision; each test involves 2^56
+    * 2^10 trial decryptions, so the overall cost of finding the
+    Layer 3 key is around 2^71 trials. Discarding false positives
+    takes 2^16 * 128 * 2^10 = 2^33 extra work.</p>
+
+    
+<p> This cost dwarfs the cost of finding the other two keys
+    once this is done. We exhaustively search for the Layer 1 key
+    by looking for a key which generates the Layer 3 input
+    collisions corresponding to our output collision; these trials
+    are much cheaper since every plaintext input block is the same,
+    so the expected cost is 2^55 trials. Then a further 2^55 trials
+    will find the Layer 3 key by normal means.</p>
+
+    
+<p> This certainly lends weight to the general conclusion that
+    inner chaining usually leads to a weaker cipher, but this
+    conclusion isn't as useful as it could be in a world that needs
+    but doesn't have widely trusted large block ciphers. The
+    significance I read from this attack is that large block
+    ciphers tend to be vulnerable to plaintexts with special
+    structures, and so any secure large block cipher will almost
+    certainly have good whitening of both plaintext and ciphertext
+    despite the expense, which is something the <a href="../mercy/">Mercy paper</a> anticipated (see <a href="../mercy/html/design_of_mercy.html#SECTION00057000000000000000">
+     Section 5.7: Whitening</a> of the HTML version).</p>
+
+    
+<p> Thanks to both <a href="http://world.std.com/~cme/">Carl
+    Ellison</a> and <a href="http://http.cs.berkeley.edu/~daw/">
+    David Wagner</a> for discussion and clarification of this
+    attack.</p>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      des|tran|des|tran|des</p>
+</body>
+
+</html>

@@ -1,0 +1,90 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Mercy: sample source code</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mercy</a> &gt;
+      Source code</p>
+<h1>Mercy: sample source code</h1>
+    
+<p> This implementation of Mercy should be in pure ANSI C, but
+    the timing harness is Unix-specific; code for other operating
+    systems to do the same work would be welcome. It achieves just
+    under 9 cycles per byte on most systems I've tried it on.</p>
+
+    
+<p> The version implemented here is that described in the <a href="./">proceedings</a> for FSE 2000; I refer to it as
+    Mercy-6. I announced the first version of this algorithm on
+    17th August on sci.crypt.research. Unfortunately there was a
+    bug in the example source code posted that weakened the
+    algorithm, so to avoid ambiguity I called the corrected version
+    "Mercy-2". Various incremental revisions were made for Mercy-3
+    and Mercy-4. After Mercy-4, I decided the cipher needed to be
+    much simpler, easier to analyse, and needed to carry more state
+    between blocks, and made several major revisions to create
+    Mercy-5. When the paper was accepted I went back, realised I
+    had missed out some easy improvements, and made a couple of
+    very minor tweaks to create Mercy-6.</p>
+
+    
+<p> Scott Fluhrer found a bug in the RC4 implementation used in
+    the key schedule; this bug is fixed here.</p>
+
+    
+<p> Since Mercy-6 has been <a href="fluhrer-dc.html">
+    broken</a>, there may be another revision, but I'm not sure if
+    it'll be called Mercy.</p>
+
+    
+<ul>
+      
+<li>
+<a href="mercy-6.1.tar.gz">Download a gzipped tar
+      archive</a> (5156 bytes)</li>
+
+      
+<li>
+<a href="mercy.zip">Download a zip file</a> (includes the
+      paper; 93220 bytes)</li>
+
+      
+<li>
+<a href="mercy-6/README">Read the README</a>
+</li>
+
+      
+<li>
+<a href="mercy-6/fast-mercy.c">View the
+      implementation</a>
+</li>
+
+      
+<li>
+<a href="mercy-6/">Browse the source directory</a>
+</li>
+    
+</ul>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mercy</a> &gt;
+      Source code</p>
+</body>
+
+</html>

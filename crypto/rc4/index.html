@@ -1,0 +1,82 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Small bias in RC4 experimentally verified</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      RC4</p>
+<h1>Small bias in RC4 experimentally verified</h1>
+    
+<p> The stream cipher RC4 (also known as ARCFOUR) exhibits a
+    very small bias towards succesive characters from the CPRNG
+    being identical: this probability is not 2^-8 but closer to
+    2^-8 + 2^-24. This has been experimentally verified with just
+    under 56 trillion samples of RC4 output.</p>
+
+    
+<p> Note that the work here is superceded by this paper:</p>
+
+    
+<blockquote>
+      Statistical Analysis of the Alleged RC4 Stream Cipher, Scott
+      R. Fluhrer and David A. McGrew, Fast Software Encryption
+      Seventh International Workshop, Springer-Verlag, March, 2000.
+    </blockquote>
+
+    
+<p> 
+<a href="http://www.mindspring.com/%7Edmcgrew/rc4-03.pdf">[
+    PDF ]</a> <a href="http://www.mindspring.com/%7Edmcgrew/dam.htm">[ David
+    McGrew's home page ]</a>
+</p>
+
+    
+<p> You can fetch the source of the <a href="rc4-test.c">
+    program used to do the tests</a>. I've also made available a <a href="rc4-bias.tar.gz">complete archive</a> (gzipped tar file,
+    621k) of the program and the results generated, which includes
+    a Perl script for reading the results. The script generates the
+    output below. Note that the probability of a result being 7.394
+    SDs or more from the mean of a normal distribution is less than
+    1.5 * 10^-13.</p>
+
+<pre>
+Number of tests: 256 * 218634000000 - 15199
+Number of coincidences: 218634000000 + 3450619
+Number of timed tests: 217914000000
+Time in seconds for timed tests: 8747636
+Timed tests took 8747636 s total, 6377263.98309212 tests/sec
+2 ^ 45.6697268168272 tests
+SD 2 ^ 18.832040126843, SD of sample measurement 2 ^ -26.8376866899841
+95% confidence interval 2 ^ -25.8668330356437
+Trying hypothesis: p(coincidence) = 1/(2^8)
+Delta is positive
+2 ^ 21.7183989336417 difference, proportion 2 ^ -23.9513278831854
+Distance in SDs 7.39401928729239
+Trying hypothesis: p(coincidence) = 1/(2^8) + 1/(2^24)
+Delta is positive
+2 ^ 16.8046042398197 difference, proportion 2 ^ -28.8651225770074
+Distance in SDs 0.245290644157141
+</pre>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      RC4</p>
+</body>
+
+</html>

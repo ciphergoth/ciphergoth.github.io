@@ -1,0 +1,59 @@
+X-From-Line: nobody Tue Mar 24 00:42:23 1998
+Newsgroups: sci.crypt
+Subject: Thoughts on Rivest's  "Chaffing and Winnowing"
+Bcc: eden
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 24 Mar 1998 00:42:22 +0000
+Message-ID: <87d8fcdimp.fsf@hedonism.demon.co.uk>
+X-Newsreader: Gnus v5.2.25/XEmacs 19.14
+Lines: 45
+Xref: hedonism.demon.co.uk misc-news:428
+X-Gnus-Article-Number: 428   Tue Mar 24 00:42:23 1998
+
+Rivest discusses a fascinating end-run around US crypto export policy
+in
+
+http://theory.lcs.mit.edu/~rivest/chaffing.txt
+
+An implementation which authenticated each individual bit with a
+64-bit MAC and provided a chaff bit with the other sense for each
+would not be practical, since the message would grow to at least 130
+times its original size.  It's desirable, to reduce overhead, to make
+the packets as large as possible while using as few chaff packets as
+possible, though you need at least one for each wheat packet.
+
+If the chaff packets are generated without regard to the likely
+content of the wheat, then a good model of what the wheat packets are
+likely to contain will allow an attacker to winnow the data stream to
+some extent and gain some information.  The bigger the chunks, the
+more effective such a model will be for the attacker.  It's therefore
+desirable for a practical implementation to pre-transform the plain
+text so that wheat-packet sized chunks look a lot like random noise,
+*without actually encrypting it*, so the transformation can be
+reversed without a key.  This suggests spreading the data out through
+the message using a transformation such as the PHT used in SAFER.  I'd
+put this step after a block compression step such as implemented by
+bzip2, which again reduces coherence in the data.  If the data were
+then divided up into 128 wheat chunks each accompanied by a random
+chaff chunk, then a brute-force attack would have to try 2^128 trial
+reversals of the transform and compression to test the original
+message for plausibility.  Better attacks, anyone?
+
+Another plausible attack with large chunks (suggested in a
+conversation this evening with Jonathan Shapcott) would be on the RNG
+generating the chaff, since if chaff packets can be recognised from
+the biases of the RNG they can be discarded.  The Powers that Be could
+be stupid enough to decide that any strong RNG (such as Linux's
+/dev/urandom) might be a munition irrespective of whether it's
+initialised from a key that allows you to reconstruct the keystream.
+
+Of course, the main thing this shows is that it's ludicrous to try and
+draw a legal distinction between encryption software and other kinds
+in the face of the state of the art, and that policymakers who have
+suggested otherwise should now feel foolish.
+-- 
+  __
+\/ o\      paul@hedonism.demon.co.uk      \ /
+/\__/ Paul Crowley -+- Linux really works /~\
+
+

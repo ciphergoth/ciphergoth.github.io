@@ -1,0 +1,1112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2K.1beta (1.48)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>Bias in the LEVIATHAN Stream Cipher</TITLE>
+<META NAME="description" CONTENT="Bias in the LEVIATHAN Stream Cipher">
+<META NAME="keywords" CONTENT="html">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2K.1beta">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="html.css">
+
+</HEAD>
+
+<BODY >
+
+<P>
+
+<P>
+
+<P>
+<H1 ALIGN="CENTER">Bias in the LEVIATHAN Stream Cipher</H1>
+<P ALIGN="CENTER"><STRONG>Paul Crowley
+<A NAME="tex2html1"
+  HREF="#foot395"><SUP>1</SUP></A>
+ - Stefan Lucks
+<A NAME="tex2html2"
+  HREF="#foot396"><SUP>2</SUP></A>
+</STRONG></P>
+
+<H3>Abstract:</H3>
+<DIV>
+We show two methods of distinguishing the LEVIATHAN stream cipher
+from a random stream using <IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img10.png"
+ ALT="\( 2^{36} \)"> bytes of output and proportional
+effort; both arise from compression within the cipher. The first models
+the cipher as two random functions in sequence, and shows that the
+probability of a collision in 64-bit output blocks is doubled as a
+result; the second shows artifacts where the same inputs are presented
+to the key-dependent S-boxes in the final stage of the cipher for
+two successive outputs. Both distinguishers are demonstrated with
+experiments on a reduced variant of the cipher.
+</DIV>
+<P>
+
+<P>
+
+<H1><A NAME="SECTION00010000000000000000"></A><A NAME="sec:intro"></A><BR>
+1 Introduction
+</H1>
+
+<P>
+LEVIATHAN [<A
+ HREF="#leviathan">5</A>] is a stream cipher proposed by David McGrew
+and Scott Fluhrer for the NESSIE project [<A
+ HREF="#nessie">6</A>]. Like most
+stream ciphers, it maps a key onto a pseudorandom keystream that can
+be XORed with the plaintext to generate the ciphertext. But it is
+unusual in that the keystream need not be generated in strict order
+from byte 0 onwards; arbitrary ranges of the keystream may be generated
+efficiently without the cost of generating and discarding all prior
+values. In other words, the keystream is ``seekable''. This property
+allows data from any part of a large encrypted file to be retrieved
+efficiently, without decrypting the whole file prior to the desired
+point; it is also useful for applications such as IPsec [<A
+ HREF="#ipsec">2</A>].
+Other stream ciphers with this property include block ciphers in CTR
+mode [<A
+ HREF="#ctrmode">3</A>]. LEVIATHAN draws ideas from the stream ciphers
+WAKE [<A
+ HREF="#wake">9</A>] and SEAL [<A
+ HREF="#seal">7</A>], and the GGM pseudo-random
+function (PRF) construction [<A
+ HREF="#ggm">1</A>].
+
+<P>
+The keystream is bounded at <IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="\( 2^{50} \)"> bytes. Though the security
+goals are stated in terms of key recovery, it is desirable that distinguishing
+this keystream from a random binary string should be as computationally
+expensive as an exhaustive search of the 128 or 256-bit keyspace.
+Keystream generation is best modelled as a key-dependent function
+<!-- MATH
+ $\textrm{Lev}:\{0,1\}^{48}\mapsto \{0,1\}^{32}$
+ -->
+<IMG
+ WIDTH="172" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img12.png"
+ ALT="\( \textrm{Lev}:\{0,1\}^{48}\mapsto \{0,1\}^{32} \)">, mapping a location
+in the stream to a 32-bit output word; catenating consecutive values
+of this function from 0 gives the entire keystream:<BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+\textrm{Lev}(0)|\textrm{Lev}(1)|\textrm{Lev}(2)|\ldots |\textrm{Lev}(2^{48}-1)
+\end{displaymath}
+ -->
+
+<IMG
+ WIDTH="264" HEIGHT="28" BORDER="0"
+ SRC="img13.png"
+ ALT="\begin{displaymath}
+\textrm{Lev}(0)\vert\textrm{Lev}(1)\vert\textrm{Lev}(2)\vert\ldots \vert\textrm{Lev}(2^{48}-1)\end{displaymath}">
+</DIV><BR CLEAR="ALL">
+<P></P>
+
+<P>
+Finding <!-- MATH
+ $\textrm{Lev}(i)$
+ -->
+<IMG
+ WIDTH="47" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img14.png"
+ ALT="\( \textrm{Lev}(i) \)"> for arbitrary <IMG
+ WIDTH="10" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img15.png"
+ ALT="\( i \)"> is not especially
+fast. However, once this is done, intermediate values can usually
+be reused to find <!-- MATH
+ $\textrm{Lev}(i+1),\textrm{Lev}(i+2)\ldots$
+ -->
+<IMG
+ WIDTH="174" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img16.png"
+ ALT="\( \textrm{Lev}(i+1),\textrm{Lev}(i+2)\ldots \)">
+much more efficiently. This is because the internal structure of the
+cipher is based on a forest of <IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.png"
+ ALT="\( 2^{32}\)"> binary trees, each of
+which generates <IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img17.png"
+ ALT="\( 2^{16} \)"> words of output, as shown in Figure
+<A HREF="#fig:tree">1</A>.
+
+<P>
+
+<P></P>
+<DIV ALIGN="CENTER"><A NAME="fig:tree"></A><A NAME="399"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 1:</STRONG>
+Computation of an entire output tree of 8 words
+with <IMG
+ WIDTH="42" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img1.png"
+ ALT="\( h=3\)">. In the full cipher, <IMG
+ WIDTH="50" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2.png"
+ ALT="\( h=16\)">
+and the complete output is built from <!-- MATH
+ $2^{32}\protect$
+ -->
+<IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img3.png"
+ ALT="\( 2^{32}\)">
+such trees.</CAPTION>
+<TR><TD><DIV ALIGN="CENTER"><!-- MATH
+ $\resizebox*{1\columnwidth}{!}{\includegraphics{tree.epsi}}$
+ -->
+<IMG
+ WIDTH="548" HEIGHT="236" ALIGN="BOTTOM" BORDER="0"
+ SRC="img18.png"
+ ALT="\resizebox*{1\columnwidth}{!}{\includegraphics{tree.epsi}}"> </DIV>
+<P>
+<DIV ALIGN="CENTER"></DIV>
+
+<P></TD></TR>
+</TABLE>
+</DIV><P></P>
+
+<P>
+The notation we use to specify this function precisely is somewhat
+different from that given in [<A
+ HREF="#leviathan">5</A>], but is convenient
+for our purposes; we treat <IMG
+ WIDTH="12" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img19.png"
+ ALT="\( z \)"> as a parameter, rather than as
+a word of state. The cipher is parameterised on <IMG
+ WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.png"
+ ALT="\( n \)"> and <IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img21.png"
+ ALT="\( h \)">,
+where <IMG
+ WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.png"
+ ALT="\( n \)"> is divisible by 4 and <IMG
+ WIDTH="44" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img22.png"
+ ALT="\( n\geq h \)">; LEVIATHAN sets
+<IMG
+ WIDTH="51" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.png"
+ ALT="\( n=32 \)"> and <IMG
+ WIDTH="50" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img2.png"
+ ALT="\( h=16\)">. <IMG
+ WIDTH="8" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img24.png"
+ ALT="\( \mid \)"> denotes catenation of bit
+strings, <IMG
+ WIDTH="13" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img25.png"
+ ALT="\( \overline{x} \)"> bitwise complementation of <IMG
+ WIDTH="13" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img26.png"
+ ALT="\( x \)">,
+<IMG
+ WIDTH="16" HEIGHT="28" ALIGN="MIDDLE" BORDER="0"
+ SRC="img27.png"
+ ALT="\( \oplus \)"> the XOR operation (addition in <IMG
+ WIDTH="25" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img28.png"
+ ALT="\( Z_{2}^{n} \)"> or
+<IMG
+ WIDTH="38" HEIGHT="41" ALIGN="MIDDLE" BORDER="0"
+ SRC="img29.png"
+ ALT="\( Z_{2}^{n/4} \)"> as appropriate), and <IMG
+ WIDTH="16" HEIGHT="28" ALIGN="MIDDLE" BORDER="0"
+ SRC="img30.png"
+ ALT="\( + \)"> addition in the group
+<IMG
+ WIDTH="30" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img31.png"
+ ALT="\( Z_{2^{n}} \)">, treating the first bit of the bitstring as the most
+significant and padding bitstrings shorter than <IMG
+ WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.png"
+ ALT="\( n \)"> bits with
+zeroes on the left. We specify the forest structure illustrated in
+Figure <A HREF="#fig:tree">1</A> recursively:<P></P><DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+\textrm{Lev}:\{0,1\}^{n+h} & \mapsto  & \{0,1\}^{n}\\
+\textrm{Lev}(t|z) & = & C(V(t,1|z))\qquad (|t|=n,|z|=h)\\
+V(t,1) & = & (t,0)\\
+V(t,z|0) & = & A_{z}(V(t,z))\\
+V(t,z|1) & = & B_{z}(V(t,z))
+\end{eqnarray*}
+ -->
+<IMG
+ WIDTH="377" HEIGHT="123" BORDER="0"
+ SRC="img32.png"
+ ALT="\begin{eqnarray*}
+\textrm{Lev}:\{0,1\}^{n+h} &amp; \mapsto &amp; \{0,1\}^{n}\\
+\textrm{...
+...z\vert) &amp; = &amp; A_{z}(V(t,z))\\
+V(t,z\vert 1) &amp; = &amp; B_{z}(V(t,z))
+\end{eqnarray*}"><BR CLEAR="ALL"></DIV><P></P>
+<BR CLEAR="ALL"><P></P><BR CLEAR="ALL"><P></P>
+
+<P>
+The internal state that functions <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img33.png"
+ ALT="\( A \)">, <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img34.png"
+ ALT="\( B \)">, and <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.png"
+ ALT="\( C\)">
+operate on (and the functions <IMG
+ WIDTH="18" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img35.png"
+ ALT="\( D \)">, <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="\( F\)">, <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)"> used to
+define them) is a 2-tuple of bitstrings <IMG
+ WIDTH="41" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="\( (x,y) \)">; we treat this
+as distinct from the catenated bitstring <IMG
+ WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img37.png"
+ ALT="\( x\vert y \)">. The functions
+<IMG
+ WIDTH="15" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="\( L \)">, <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img39.png"
+ ALT="\( R \)">, and <IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img40.png"
+ ALT="\( S \)"> operate on bytes within a word: <IMG
+ WIDTH="15" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img38.png"
+ ALT="\( L \)">
+and <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img39.png"
+ ALT="\( R \)"> are rotates, while <IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img40.png"
+ ALT="\( S \)"> provides nonlinearity with
+the key-dependent permutations <IMG
+ WIDTH="39" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img41.png"
+ ALT="\( S_{0\ldots 3} \)"> which map <IMG
+ WIDTH="65" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img42.png"
+ ALT="\( \{0,1\}^{n/4} \)">
+onto itself. These permutations are generated by the key schedule,
+which we omit. Note that <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="\( F\)"> and <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)"> operate on each word
+of the tuple independently; mixing is provided by <IMG
+ WIDTH="18" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img35.png"
+ ALT="\( D \)">.
+
+<P>
+<P></P><DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+C(x,y) & = & x\oplus y\\
+A_{z} & = & F\circ D_{z}\\
+B_{z} & = & G\circ D_{z}\\
+D_{z}(x,y) & = & (2x+y+2z,x+y+z)\\
+F(x,y) & = & (L(S(L(S(x)))),S(R(S(R(y)))))\\
+G(x,y) & = & (S(R(S(R(\overline{x})))),L(S(L(S(y)))))\\
+L(x_{3}|x_{2}|x_{1}|x_{0}) & = & x_{2}|x_{1}|x_{0}|x_{3}\qquad (|x_{3}|=|x_{2}|=|x_{1}|=|x_{0}|=n/4)\\
+R(x_{3}|x_{2}|x_{1}|x_{0}) & = & x_{0}|x_{3}|x_{2}|x_{1}\\
+S(x_{3}|x_{2}|x_{1}|x_{0}) & = & x_{3}\oplus S_{3}(x_{0})|x_{2}\oplus S_{2}(x_{0})|x_{1}\oplus S_{1}(x_{0})|S_{0}(x_{0})
+\end{eqnarray*}
+ -->
+<IMG
+ WIDTH="479" HEIGHT="219" BORDER="0"
+ SRC="img43.png"
+ ALT="\begin{eqnarray*}
+C(x,y) &amp; = &amp; x\oplus y\\
+A_{z} &amp; = &amp; F\circ D_{z}\\
+B_{z} &amp; ...
+...lus S_{2}(x_{0})\vert x_{1}\oplus S_{1}(x_{0})\vert S_{0}(x_{0})
+\end{eqnarray*}"><BR CLEAR="ALL"></DIV><P></P>
+<BR CLEAR="ALL"><P></P><BR CLEAR="ALL"><P></P>
+
+<P>
+[<A
+ HREF="#leviathan">5</A>] gives a functionally different definition of <IMG
+ WIDTH="18" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img35.png"
+ ALT="\( D \)">
+(<!-- MATH
+ $D_{z}(x,y)=(2x+y+z,x+y+z)$
+ -->
+<IMG
+ WIDTH="239" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img44.png"
+ ALT="\( D_{z}(x,y)=(2x+y+z,x+y+z) \)">); the one given here is that intended
+by the authors [<A
+ HREF="#dfunc">4</A>] and used to generate the test vectors,
+though the difference is not relevant for our analysis. 
+
+<P>
+We present two biases in the LEVIATHAN keystream that distinguish
+it from a random bit string. We know of no other attacks against LEVIATHAN
+more efficient than brute force.
+
+<P>
+
+<H1><A NAME="SECTION00020000000000000000">
+2 PRF-PRF Attack</A>
+</H1>
+
+<P>
+Both attacks focus on consecutive pairs of outputs generated by <!-- MATH
+ $\textrm{LevPair}(i)=(\textrm{Lev}(i|0),\textrm{Lev}(i|1))$
+ -->
+<IMG
+ WIDTH="228" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img45.png"
+ ALT="\( \textrm{LevPair}(i)=(\textrm{Lev}(i\vert),\textrm{Lev}(i\vert 1)) \)">.
+Clearly, LevPair generates the same <IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img11.png"
+ ALT="\( 2^{50} \)">-byte keystream as
+Lev, so a distinguisher for one is a distinguisher for the other.
+Such pairs are interesting because they are the most closely related
+outputs in the tree structure; [<A
+ HREF="#leviathan">5</A>] refers to attacks
+using such pairs as ``up-and-down attacks''. We can expand the
+formula for LevPair as follows:<P></P><DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+\textrm{LevPair}(t|z) & = & (\textrm{Lev}(t|z|0),\textrm{Lev}(t|z|1))\\
+ & = & (C(V(t,1|z|0)),C(V(t,1|z|1)))\\
+ & = & (C(F(D_{1|z}(V(t,1|z)))),C(G(D_{1|z}(V(t,1|z)))))
+\end{eqnarray*}
+ -->
+<IMG
+ WIDTH="450" HEIGHT="77" BORDER="0"
+ SRC="img46.png"
+ ALT="\begin{eqnarray*}
+\textrm{LevPair}(t\vert z) &amp; = &amp; (\textrm{Lev}(t\vert z\vert),...
+...D_{1\vert z}(V(t,1\vert z)))),C(G(D_{1\vert z}(V(t,1\vert z)))))
+\end{eqnarray*}"><BR CLEAR="ALL"></DIV><P></P>
+<BR CLEAR="ALL"><P></P><BR CLEAR="ALL"><P></P>
+
+<P>
+From this we define functions LevAbove which generates the last common
+ancestor of such an output pair as illustrated in Figure <A HREF="#fig:levabove">2</A>,
+and PairCom which generates the output pair from the ancestor:<P></P><DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+\textrm{LevAbove}(t|z) & = & D_{1|z}(V(t,1|z))\qquad (|z|=h-1)\\
+\textrm{PairCom}(x,y) & = & (C(F(x,y)),C(G(x,y)))
+\end{eqnarray*}
+ -->
+<IMG
+ WIDTH="363" HEIGHT="52" BORDER="0"
+ SRC="img47.png"
+ ALT="\begin{eqnarray*}
+\textrm{LevAbove}(t\vert z) &amp; = &amp; D_{1\vert z}(V(t,1\vert z))\...
+...z\vert=h-1)\\
+\textrm{PairCom}(x,y) &amp; = &amp; (C(F(x,y)),C(G(x,y)))
+\end{eqnarray*}"><BR CLEAR="ALL"></DIV><P></P>
+<BR CLEAR="ALL"><P></P><BR CLEAR="ALL"><P></P>
+from which we can see <!-- MATH
+ $\textrm{LevPair}=\textrm{PairCom}\circ \textrm{LevAbove}$
+ -->
+<IMG
+ WIDTH="226" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img48.png"
+ ALT="\( \textrm{LevPair}=\textrm{PairCom}\circ \textrm{LevAbove} \)">
+as stated. We model LevAbove as a random function throughout, and
+focus on the properties of PairCom. 
+
+<P></P>
+<DIV ALIGN="CENTER"><A NAME="fig:levabove"></A><A NAME="402"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 2:</STRONG>
+Final stage of LevPair output; LevAbove finds
+the last common ancestor of the pair.</CAPTION>
+<TR><TD><DIV ALIGN="CENTER"><!-- MATH
+ $\resizebox*{!}{4.8cm}{\includegraphics{abc.epsi}}$
+ -->
+<IMG
+ WIDTH="257" HEIGHT="205" ALIGN="BOTTOM" BORDER="0"
+ SRC="img49.png"
+ ALT="\resizebox*{!}{4.8cm}{\includegraphics{abc.epsi}}"> </DIV>
+<P>
+<DIV ALIGN="CENTER"></DIV>
+
+<P></TD></TR>
+</TABLE>
+</DIV><P></P>
+
+<P>
+This structure gives us our first distinguisher. Though PairCom has
+the same domain as range, it is not in general bijective; it can be
+modelled more accurately as a random function. Thus a collision can
+occur in LevPair, given two distinct inputs, if there is a collision
+either in LevAbove or in PairCom, and if we model both as random functions
+the probability of an output collision for two random distinct inputs
+to LevPair is thus approximately <!-- MATH
+ $2^{-2n}+(1-2^{-2n})2^{-2n}\approx 2^{1-2n}$
+ -->
+<IMG
+ WIDTH="223" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img50.png"
+ ALT="\( 2^{-2n}+(1-2^{-2n})2^{-2n}\approx 2^{1-2n} \)">,
+twice what it should be if the keystream were a random binary string.
+
+<P>
+For <IMG
+ WIDTH="51" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.png"
+ ALT="\( n=32 \)">, this increased probability of collisions between
+output word pairs can be observed with a birthday attack after around
+<IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img51.png"
+ ALT="\( 2^{33} \)"> output pairs (<IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img10.png"
+ ALT="\( 2^{36} \)"> bytes) have been generated;
+the techniques of [<A
+ HREF="#parallelcollision">8</A>] may be used to reduce
+the memory demands of this attack, though this slows the attack by
+a factor of approximately <IMG
+ WIDTH="118" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img52.png"
+ ALT="\( (h+1)/4=4.25 \)"> where <IMG
+ WIDTH="13" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img21.png"
+ ALT="\( h \)"> is the
+height of the tree, since probes can no longer take advantage of the
+higher efficiency of sampling consecutive values of LevPair.
+
+<P>
+
+<H1><A NAME="SECTION00030000000000000000">
+3 S-Box Matching Attack</A>
+</H1>
+
+<P>
+The definitions of the <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="\( F\)"> and <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)"> functions are very similar;
+<IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)"> is the same as <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="\( F\)"> except that it treats its inputs
+in the opposite order, and inverts one of them. If <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)"> did not
+apply bitwise inversion to its first input (call this function <IMG
+ WIDTH="21" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img53.png"
+ ALT="\( G' \)">),
+then the two functions would be related by <!-- MATH
+ $F\circ \textrm{Swap}=\textrm{Swap}\circ G'$
+ -->
+<IMG
+ WIDTH="158" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img54.png"
+ ALT="\( F\circ \textrm{Swap}=\textrm{Swap}\circ G' \)">
+(with Swap having the obvious definition <!-- MATH
+ $\textrm{Swap}(x,y)=(y,x)$
+ -->
+<IMG
+ WIDTH="136" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img55.png"
+ ALT="\( \textrm{Swap}(x,y)=(y,x) \)">);
+this would mean in turn that <!-- MATH
+ $F(a,a)=\textrm{Swap}(G'(a,a))$
+ -->
+<IMG
+ WIDTH="176" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img56.png"
+ ALT="\( F(a,a)=\textrm{Swap}(G'(a,a)) \)">
+for any <IMG
+ WIDTH="12" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img57.png"
+ ALT="\( a \)">, and thus that <!-- MATH
+ $C(F(a,a))=C(G'(a,a))$
+ -->
+<IMG
+ WIDTH="177" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img58.png"
+ ALT="\( C(F(a,a))=C(G'(a,a)) \)">, with
+the result, as we shall see, that repeating pairs were visible in
+the output roughly twice as often as they should be. The inversion
+on the first input of <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)"> breaks this symmetry; however, it turns
+out that it does not prevent a related attack. 
+
+<P>
+Computation of PairCom requires 32 S-box lookups, but for each computation
+of the <IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img40.png"
+ ALT="\( S \)"> function the same 8-bit index, drawn from the least
+significant byte, is fed to each of the four S-boxes. Changes to the
+other bytes carry directly into the output of <IMG
+ WIDTH="15" HEIGHT="15" ALIGN="BOTTOM" BORDER="0"
+ SRC="img40.png"
+ ALT="\( S \)">, without nonlinearity
+or mixing; in other words, where <!-- MATH
+ $\Delta x=\Delta x_{3}|\Delta x_{2}|\Delta x_{1}|0^{n/4}$
+ -->
+<IMG
+ WIDTH="179" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img59.png"
+ ALT="\( \Delta x=\Delta x_{3}\vert\Delta x_{2}\vert\Delta x_{1}\vert^{n/4} \)">,
+we find <!-- MATH
+ $S(x\oplus \Delta x)=S(x)\oplus \Delta x$
+ -->
+<IMG
+ WIDTH="173" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img60.png"
+ ALT="\( S(x\oplus \Delta x)=S(x)\oplus \Delta x \)">. We call this
+least significant byte the <I>index</I> to the S-box. If <IMG
+ WIDTH="41" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="\( (x,y) \)">
+is the input to PairCom, only bytes <IMG
+ WIDTH="44" HEIGHT="28" ALIGN="MIDDLE" BORDER="0"
+ SRC="img61.png"
+ ALT="\( x_{3},x_{0} \)"> of <IMG
+ WIDTH="13" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img26.png"
+ ALT="\( x \)">
+are indices to S-boxes in <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="\( F\)">, and only bytes <IMG
+ WIDTH="44" HEIGHT="28" ALIGN="MIDDLE" BORDER="0"
+ SRC="img62.png"
+ ALT="\( x_{2},x_{1} \)">
+are indices in <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)">; by inverting only these two bytes in our
+pair <IMG
+ WIDTH="40" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img63.png"
+ ALT="\( (a,a) \)">, we can avoid the symmetry-breaking effect of the
+inversion as far as the nonlinear components are concerned, which
+results in the same four S-box indices being used in both the <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="\( F\)">
+and <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)"> branches of PairCom.
+
+<P>
+
+<P></P>
+<DIV ALIGN="CENTER"><A NAME="fig:stefan"></A><A NAME="404"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 3:</STRONG>
+S-box matching input to <!-- MATH
+ $C\circ \textrm{PairCom}\protect$
+ -->
+<IMG
+ WIDTH="93" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img4.png"
+ ALT="\( C\circ \textrm {PairCom}\)">.
+The function <IMG
+ WIDTH="16" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img5.png"
+ ALT="\( F\)"> is on the left, <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)">
+on the right, and <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.png"
+ ALT="\( C\)"> underneath; dotted lines
+indicate bitwise inversion (the first step of the <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img6.png"
+ ALT="\( G\)">
+function) and the ``<!-- MATH
+ $\oplus \oplus \oplus S\protect$
+ -->
+<IMG
+ WIDTH="59" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img8.png"
+ ALT="\( \oplus \oplus \oplus S\)">''
+symbol represents the function <!-- MATH
+ $S(x_{3}|x_{2}|x_{1}|x_{0})=x_{3}\oplus S_{3}(x_{0})|x_{2}\oplus S_{2}(x_{0})|x_{1}\oplus S_{1}(x_{0})|S_{0}(x_{0})\protect$
+ -->
+<IMG
+ WIDTH="429" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img9.png"
+ ALT="\( S(x_{3}\vert x_{2}\vert x_{1}\vert x_{0})=x_{3}\oplus S_{3}(x_{0})\vert x_{2}\oplus S_{2}(x_{0})\vert x_{1}\oplus S_{1}(x_{0})\vert S_{0}(x_{0})\)">.</CAPTION>
+<TR><TD><DIV ALIGN="CENTER"><!-- MATH
+ $\resizebox*{1\textwidth}{!}{\includegraphics{stefan.epsi}}$
+ -->
+<IMG
+ WIDTH="541" HEIGHT="626" ALIGN="BOTTOM" BORDER="0"
+ SRC="img64.png"
+ ALT="\resizebox*{1\textwidth}{!}{\includegraphics{stefan.epsi}}"> </DIV>
+<P>
+<DIV ALIGN="CENTER"></DIV>
+
+<P></TD></TR>
+</TABLE>
+</DIV><P></P>
+
+<P>
+Figure <A HREF="#fig:stefan">3</A> illustrates this attack. For an arbitrary
+<IMG
+ WIDTH="14" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img20.png"
+ ALT="\( n \)">-bit string <!-- MATH
+ $a=a_{3}|a_{2}|a_{1}|a_{0}$
+ -->
+<IMG
+ WIDTH="109" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img65.png"
+ ALT="\( a=a_{3}\vert a_{2}\vert a_{1}\vert a_{0} \)">, we define symbols
+for intermediate values in <IMG
+ WIDTH="53" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img66.png"
+ ALT="\( F(a,a) \)">:<P></P><DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+b_{3}|b_{2}|b_{1}|b_{0} & = & S(a_{3}|a_{2}|a_{1}|a_{0})\\
+b'_{0}|b'_{3}|b'_{2}|b'_{1} & = & S(a_{0}|a_{3}|a_{2}|a_{1})\\
+c_{2}|c_{1}|c_{0}|c_{3} & = & S(b_{2}|b_{1}|b_{0}|b_{3})\\
+c'_{1}|c'_{0}|c'_{3}|c'_{2} & = & S(b'_{1}|b'_{0}|b'_{3}|b'_{2})\\
+d_{3}|d_{2}|d_{1}|d_{0} & = & (c_{3}|c_{2}|c_{1}|c_{0})\oplus (c'_{3}|c'_{2}|c'_{1}|c'_{0})
+\end{eqnarray*}
+ -->
+<IMG
+ WIDTH="300" HEIGHT="123" BORDER="0"
+ SRC="img67.png"
+ ALT="\begin{eqnarray*}
+b_{3}\vert b_{2}\vert b_{1}\vert b_{0} &amp; = &amp; S(a_{3}\vert a_{2...
+...}\vert c_{0})\oplus (c'_{3}\vert c'_{2}\vert c'_{1}\vert c'_{0})
+\end{eqnarray*}"><BR CLEAR="ALL"></DIV><P></P>
+<BR CLEAR="ALL"><P></P><BR CLEAR="ALL"><P></P>
+
+<P>
+With these definitions, we find that <!-- MATH
+ $\textrm{PairCom}(a_{3}|\overline{a_{2}}|\overline{a_{1}}|a_{0},\; a_{3}|a_{2}|a_{1}|a_{0})=(\overline{d_{1}}|d_{0}|d_{3}|\overline{d_{2}},\: d_{1}|\overline{d_{0}}|\overline{d_{3}}|d_{2})$
+ -->
+<IMG
+ WIDTH="435" HEIGHT="36" ALIGN="MIDDLE" BORDER="0"
+ SRC="img68.png"
+ ALT="\( \textrm{PairCom}(a_{3}\vert\overline{a_{2}}\vert\overline{a_{1}}\vert a_{0},\...
+...verline{d_{2}},\: d_{1}\vert\overline{d_{0}}\vert\overline{d_{3}}\vert d_{2}) \)">:<P></P><DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+C(F(x,y)) & = & C(L(S(L(S(x)))),\; S(R(S(R(y)))))\\
+ & = & C(L(S(L(S(a_{3}|\overline{a_{2}}|\overline{a_{1}}|a_{0})))),\; S(R(S(R(a_{3}|a_{2}|a_{1}|a_{0})))))\\
+ & = & C(L(S(L(b_{3}|\overline{b_{2}}|\overline{b_{1}}|b_{0}))),\; S(R(S(a_{0}|a_{3}|a_{2}|a_{1}))))\\
+ & = & C(L(S(\overline{b_{2}}|\overline{b_{1}}|b_{0}|b_{3})),\; S(R(b'_{0}|b'_{3}|b'_{2}|b'_{1})))\\
+ & = & C(L(\overline{c_{2}}|\overline{c_{1}}|c_{0}|c_{3}),\; S(b'_{1}|b'_{0}|b'_{3}|b'_{2}))\\
+ & = & C(\overline{c_{1}}|c_{0}|c_{3}|\overline{c_{2}},\; c'_{1}|c'_{0}|c'_{3}|c'_{2})\\
+ & = & \overline{d_{1}}|d_{0}|d_{3}|\overline{d_{2}}\\
+C(G(x,y)) & = & C(S(R(S(R(\overline{x})))),\; L(S(L(S(y)))))\\
+ & = & C(S(R(S(R(\overline{a_{3}}|a_{2}|a_{1}|\overline{a_{0}})))),\; L(S(L(S(a_{3}|a_{2}|a_{1}|a_{0})))))\\
+ & = & C(S(R(S(\overline{a_{0}}|\overline{a_{3}}|a_{2}|a_{1}))),\; L(S(L(b_{3}|b_{2}|b_{1}|b_{0}))))\\
+ & = & C(S(R(\overline{b'_{0}}|\overline{b'_{3}}|b'_{2}|b'_{1})),\; L(S(b_{2}|b_{1}|b_{0}|b_{3})))\\
+ & = & C(S(b'_{1}|\overline{b'_{0}}|\overline{b'_{3}}|b'_{2}),\; L(c_{2}|c_{1}|c_{0}|c_{3}))\\
+ & = & C(c'_{1}|\overline{c'_{0}}|\overline{c'_{3}}|c'_{2},\; c_{1}|c_{0}|c_{3}|c_{2})\\
+ & = & d_{1}|\overline{d_{0}}|\overline{d_{3}}|d_{2}
+\end{eqnarray*}
+ -->
+<IMG
+ WIDTH="492" HEIGHT="338" BORDER="0"
+ SRC="img69.png"
+ ALT="\begin{eqnarray*}
+C(F(x,y)) &amp; = &amp; C(L(S(L(S(x)))),\; S(R(S(R(y)))))\\
+&amp; = &amp; C(...
+...&amp; = &amp; d_{1}\vert\overline{d_{0}}\vert\overline{d_{3}}\vert d_{2}
+\end{eqnarray*}"><BR CLEAR="ALL"></DIV><P></P>
+<BR CLEAR="ALL"><P></P><BR CLEAR="ALL"><P></P>
+
+<P>
+From this it is clear that for any input of the appropriate form,
+one output word is the inverse of the other; or in other words, if
+we now XOR the two word outputs from PairCom together (which, conveniently,
+is the same as applying the LEVIATHAN compression function <IMG
+ WIDTH="17" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img7.png"
+ ALT="\( C\)">
+a second time), we find <P></P><DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{eqnarray*}
+C(\textrm{PairCom}(a_{3}|\overline{a_{2}}|\overline{a_{1}}|a_{0},\; a_{3}|a_{2}|a_{1}|a_{0})) & = & \overline{d_{1}}|d_{0}|d_{3}|\overline{d_{2}}\oplus d_{1}|\overline{d_{0}}|\overline{d_{3}}|d_{2}=1^{n}
+\end{eqnarray*}
+ -->
+<IMG
+ WIDTH="513" HEIGHT="28" BORDER="0"
+ SRC="img70.png"
+ ALT="\begin{eqnarray*}
+C(\textrm{PairCom}(a_{3}\vert\overline{a_{2}}\vert\overline{a_...
+...d_{1}\vert\overline{d_{0}}\vert\overline{d_{3}}\vert d_{2}=1^{n}
+\end{eqnarray*}"><BR CLEAR="ALL"></DIV><P></P>
+<BR CLEAR="ALL"><P></P><BR CLEAR="ALL"><P></P>
+for <I>all</I> values of <IMG
+ WIDTH="37" HEIGHT="28" ALIGN="MIDDLE" BORDER="0"
+ SRC="img71.png"
+ ALT="\( a_{3\ldots 0} \)">.
+
+<P>
+Since we model LevAbove as a random function we conclude that inputs
+to PairCom have probability <IMG
+ WIDTH="31" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img72.png"
+ ALT="\( 2^{-n} \)"> of matching this form in
+the normal calculation of LevPair. Where inputs do not match this
+form, we assume that PairCom behaves as a random function and therefore
+that for random <IMG
+ WIDTH="41" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img36.png"
+ ALT="\( (x,y) \)"> not matching this form, <!-- MATH
+ $\textrm{Pr}\left( C(\textrm{PairCom}(x,y))=1^{n}\right) =2^{-n}$
+ -->
+<IMG
+ WIDTH="245" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img73.png"
+ ALT="\( \textrm{Pr}\left( C(\textrm{PairCom}(x,y))=1^{n}\right) =2^{-n} \)">;
+this assumption is borne out by experiment. From this we conclude
+that LevPair is twice as likely as a random function to produce an
+output <IMG
+ WIDTH="56" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img74.png"
+ ALT="\( (x_{0},x_{1}) \)"> such that <!-- MATH
+ $C(x_{0},x_{1})=1^{n}$
+ -->
+<IMG
+ WIDTH="106" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img75.png"
+ ALT="\( C(x_{0},x_{1})=1^{n} \)"><BR><P></P>
+<DIV ALIGN="CENTER">
+<!-- MATH
+ \begin{displaymath}
+\textrm{Pr}\left( C(\textrm{LevPair}(t|z))=1^{n}\right) =2^{-n}+(1-2^{-n})2^{-n}\approx 2^{1-n}
+\end{displaymath}
+ -->
+
+<IMG
+ WIDTH="393" HEIGHT="28" BORDER="0"
+ SRC="img76.png"
+ ALT="\begin{displaymath}
+\textrm{Pr}\left( C(\textrm{LevPair}(t\vert z))=1^{n}\right) =2^{-n}+(1-2^{-n})2^{-n}\approx 2^{1-n}\end{displaymath}">
+</DIV><BR CLEAR="ALL">
+<P></P>
+which in turn implies that 64-bit aligned segments of keystream of
+this form are twice as frequent as they should be, yielding another
+distinguisher.
+
+<P>
+For <IMG
+ WIDTH="51" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img23.png"
+ ALT="\( n=32 \)">, a test for the presence of this bias should therefore
+take on the order of <IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img51.png"
+ ALT="\( 2^{33} \)"> samples of LevPair, ie <IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img10.png"
+ ALT="\( 2^{36} \)">
+bytes, as for the previous attack.
+
+<P>
+
+<H1><A NAME="SECTION00040000000000000000">
+4 Experiments</A>
+</H1>
+
+<P>
+We looked for these biases on a reduced version of LEVIATHAN with
+<IMG
+ WIDTH="104" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img77.png"
+ ALT="\( n=16,h=16 \)">.
+
+<P>
+For the PRF-PRF attack, we ran over 256 distinct keys generating <IMG
+ WIDTH="95" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img78.png"
+ ALT="\( N=6291456 \)">
+32-bit LevPair outputs for each, and sorting them to find collisions.
+We count as a collision each instance where a distinct pair of inputs
+result in the same output; thus, where <IMG
+ WIDTH="47" HEIGHT="28" ALIGN="MIDDLE" BORDER="0"
+ SRC="img79.png"
+ ALT="\( m&gt;2 \)"> outputs have the
+same value, we count this as <IMG
+ WIDTH="88" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img80.png"
+ ALT="\( m(m-1)/2 \)"> distinct collisions.
+For a random function we would expect to find approximately<A NAME="tex2html6"
+  HREF="#foot380"><SUP>3</SUP></A> <!-- MATH
+ $256(N(N-1)/2)/2^{2n}\approx 1179678$
+ -->
+<IMG
+ WIDTH="233" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img84.png"
+ ALT="\( 256(N(N-1)/2)/2^{2n}\approx 1179678 \)"> collisions in total across
+all keys, while the PRF-PRF attack would predict an expected <!-- MATH
+ $256(N(N-1)/2)/2^{2n-1}\approx 2359296$
+ -->
+<IMG
+ WIDTH="249" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img85.png"
+ ALT="\( 256(N(N-1)/2)/2^{2n-1}\approx 2359296 \)">.
+The experiment found 2350336 collisions; this is <IMG
+ WIDTH="48" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img86.png"
+ ALT="\( 1077.9 \)"> standard
+deviations (SDs) from the expected value in the random function model,
+and <IMG
+ WIDTH="32" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img87.png"
+ ALT="\( 5.83 \)"> SDs from the expected value in the model provided
+by the PRF-PRF attack. This shows that this model identifies a substantial
+bias in the cipher, but there is a further bias in the collision probability
+of roughly 0.38% yet to be accounted for.
+
+<P>
+For the S-box matching attack, we generated <IMG
+ WIDTH="104" HEIGHT="14" ALIGN="BOTTOM" BORDER="0"
+ SRC="img88.png"
+ ALT="\( N=16777216 \)"> LevPair
+outputs for each of 256 keys, counting outputs with the <IMG
+ WIDTH="96" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img89.png"
+ ALT="\( C(x,y)=1^{32} \)">
+property. A random function would generate an expected <!-- MATH
+ $256N/2^{16}=65536$
+ -->
+<IMG
+ WIDTH="131" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img90.png"
+ ALT="\( 256N/2^{16}=65536 \)">
+such outputs, while the S-box matching attack predicts that LevPair
+will generate an expected <!-- MATH
+ $256N/2^{15}=131072$
+ -->
+<IMG
+ WIDTH="140" HEIGHT="33" ALIGN="MIDDLE" BORDER="0"
+ SRC="img91.png"
+ ALT="\( 256N/2^{15}=131072 \)"> such outputs.
+The experiment found <IMG
+ WIDTH="52" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img92.png"
+ ALT="\( 135872 \)"> such outputs; this is <IMG
+ WIDTH="40" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img93.png"
+ ALT="\( 274.8 \)">
+SDs from the expected value in the random function model, and <IMG
+ WIDTH="40" HEIGHT="13" ALIGN="BOTTOM" BORDER="0"
+ SRC="img94.png"
+ ALT="\( 13.26 \)">
+SDs from the expected value in the model provided by the S-box matching
+attack. Again, this shows that while a substantial source of bias
+has been identified, there is still a bias of 3.66% yet to be accounted
+for. Scott Fluhrer has reported finding this attack effective in experiments
+against the full LEVIATHAN with <IMG
+ WIDTH="104" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img95.png"
+ ALT="\( n=32,h=16 \)">.
+
+<P>
+
+<H1><A NAME="SECTION00050000000000000000"></A><A NAME="sec:conclusions"></A><BR>
+5 Conclusions
+</H1>
+
+<P>
+We have shown two forms of bias in the output of the LEVIATHAN keystream
+generator, either of which distinguish it from a random function with
+<IMG
+ WIDTH="26" HEIGHT="16" ALIGN="BOTTOM" BORDER="0"
+ SRC="img10.png"
+ ALT="\( 2^{36} \)"> known bytes of output; we have not as yet found a way
+to recover key material using these distinguishers. These distinguishers
+can both be applied to the same portion of keystream for greater statistical
+significance. Both make use of compression in the PairCom function. 
+
+<P>
+Despite these attacks, LEVIATHAN demonstrates that a tree-based cipher
+could offer many advantages. It is to be hoped that similar designs,
+offering the same speed and flexibility but resistant to this and
+other attacks, will be forthcoming.
+
+<P>
+
+<H1><A NAME="SECTION00060000000000000000">
+Acknowledgements</A>
+</H1>
+
+<P>
+Thanks to R&#252;diger Weis for helpful commentary and suggestions,
+and to the LEVIATHAN authors for providing an implementation of the
+first experiment and for useful discussion.
+
+<P>
+
+<H2><A NAME="SECTION00070000000000000000">
+Bibliography</A>
+</H2><DL COMPACT><DD><P></P><DT><A NAME="ggm">1</A>
+<DD>
+Oded Goldreich, Shafi Goldwasser, and Silvio Micali.
+<BR>How to construct random functions.
+<BR><EM>Journal of the ACM</EM>, 33(4):792-807, 1986.
+
+<P></P><DT><A NAME="ipsec">2</A>
+<DD>
+IP security protocol (ipsec).
+<BR>
+  <B><A NAME="tex2html7"
+  HREF="http://www.ietf.org/html.charters/ipsec-charter.html">http://www.ietf.org/html.charters/ipsec-charter.html</A></B>.
+
+<P></P><DT><A NAME="ctrmode">3</A>
+<DD>
+Helger Lipmaa, Philip Rogaway, and David Wagner.
+<BR>Comments to NIST concerning AES modes of operation: CTR-mode
+  encryption, 2000.
+
+<P></P><DT><A NAME="dfunc">4</A>
+<DD>
+David&nbsp;A. McGrew.
+<BR>Re: Possible problems with leviathan?
+<BR>Personal email, November 2000.
+
+<P></P><DT><A NAME="leviathan">5</A>
+<DD>
+David&nbsp;A. McGrew and Scott&nbsp;R. Fluhrer.
+<BR>The stream cipher LEVIATHAN.
+<BR>NESSIE project submission, October 2000.
+
+<P></P><DT><A NAME="nessie">6</A>
+<DD>
+NESSIE: New European schemes for signatures, integrity, and encryption.
+<BR>
+  <B><A NAME="tex2html8"
+  HREF="http://www.cryptonessie.org/">http://www.cryptonessie.org/</A></B>.
+
+<P></P><DT><A NAME="seal">7</A>
+<DD>
+Phillip Rogaway and Don Coppersmith.
+<BR>A software-optimized encryption algorithm.
+<BR>In Ross Anderson, editor, <EM>Fast Software Encryption</EM>, pages
+  56-63. Springer-Verlag, 1994.
+
+<P></P><DT><A NAME="parallelcollision">8</A>
+<DD>
+Paul&nbsp;C. van Oorschot and Michael&nbsp;J. Wiener.
+<BR>Parallel collision search with cryptanalytic applications.
+<BR><EM>Journal of Cryptology</EM>, 12(1):1-28, 1999.
+
+<P></P><DT><A NAME="wake">9</A>
+<DD>
+David Wheeler.
+<BR>A bulk data encryption algorithm.
+<BR>In Bart Preneel, editor, <EM>Fast Software Encryption: Second
+  International Workshop</EM>, volume 1008 of <EM>Lecture Notes in Computer
+  Science</EM>, Leuven, Belgium, 14-16&nbsp;December 1994. Springer-Verlag.
+<BR>Published 1995.
+</DL>
+
+<P>
+URL for this paper: <B><A NAME="tex2html9"
+  HREF="http://www.ciphergoth.org/crypto/leviathan">http://www.ciphergoth.org/crypto/leviathan</A></B>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot395">... Crowley</A><A NAME="foot395"
+ HREF="#tex2html1"><SUP>1</SUP></A>
+<DD>
+cryptolabs Amsterdam, 
+<B>paul@cryptolabs.org</B> 
+This research was supported by
+convergence integrated media GmbH
+
+<DT><A NAME="foot396">... Lucks</A><A NAME="foot396"
+ HREF="#tex2html2"><SUP>2</SUP></A>
+<DD>
+University of Mannheim
+<B>lucks@weisskugel.informatik.uni-mannheim.de</B>
+This research was supported by
+Deutsche Forschungsgemeinschaft (DFG) grant Kr 1521/2
+
+<DT><A NAME="foot380">... approximately</A><A NAME="foot380"
+ HREF="#tex2html6"><SUP>3</SUP></A>
+<DD>The approximation <!-- MATH
+ $E\left( \left| \left\{ \{x,y\}:f(x)=f(y)\right\} \right| \right) \approx \left| A\right| \left( \left| A\right| -1\right) /2\left| B\right|$
+ -->
+<IMG
+ WIDTH="341" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img81.png"
+ ALT="\( E\left( \left\vert \left\{ \{x,y\}:f(x)=f(y)\right\} \right\vert \right) \app...
+...right\vert \left( \left\vert A\right\vert -1\right) /2\left\vert B\right\vert \)">
+for the number of collisions in a random function <IMG
+ WIDTH="76" HEIGHT="29" ALIGN="MIDDLE" BORDER="0"
+ SRC="img82.png"
+ ALT="\( f:A\mapsto B \)">
+is very precise where <!-- MATH
+ $\left| B\right|$
+ -->
+<IMG
+ WIDTH="26" HEIGHT="31" ALIGN="MIDDLE" BORDER="0"
+ SRC="img83.png"
+ ALT="\( \left\vert B\right\vert \)"> is large; where we refer
+to the predictions of the random function model, it is the model with
+this approximation. 
+
+
+</DL><BR><HR>
+<ADDRESS>
+papers@paul.ciphergoth.org
+</ADDRESS>
+</BODY>
+</HTML>

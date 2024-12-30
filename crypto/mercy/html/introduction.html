@@ -1,0 +1,178 @@
+<!-- -*- mode: xml -*- -->
+<!--Converted with LaTeX2HTML 99.2beta6 (1.42)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Introduction</title>
+    <meta name="description" content="Introduction"/>
+    <meta name="keywords" content="mercy-paper"/>
+    <meta name="resource-type" content="document"/>
+    <meta name="distribution" content="global"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta name="Generator" content="LaTeX2HTML v99.2beta6"/>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <link rel="STYLESHEET" href="mercy-paper.css"/>
+    <link rel="next" href="avalanche_and_certif.html"/>
+    <link rel="previous" href="./"/>
+    <link rel="up" href="./"/>
+    <link rel="next" href="avalanche_and_certif.html"/>
+    <meta name="MSSmartTagsPreventParsing" content="TRUE"/>
+  </head>
+
+  <body bgcolor="white">
+    <!--Navigation Panel--><a id="tex2html40" name="tex2html40" href="avalanche_and_certif.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html38" name="tex2html38" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html32" name="tex2html32" href="./" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html41" name="tex2html41" href="avalanche_and_certif.html" shape="rect">Avalanche and certificational
+    weaknesses</a> <strong> Up:</strong> <a id="tex2html39" name="tex2html39" href="./" shape="rect">Mercy: a fast large</a> <strong>
+    Previous:</strong> <a id="tex2html33" name="tex2html33" href="./" shape="rect">Mercy: a fast large</a>
+    <br clear="none"/>
+    <br clear="none"/>
+     <!--End of Navigation Panel--></p>
+
+    <h1>
+<a id="SECTION00010000000000000000" name="SECTION00010000000000000000" shape="rect"/>
+<a id="sec:intro" name="sec:intro" shape="rect"/>
+    <br clear="none"/>
+     Introduction</h1>
+
+    <p>Disk sector encryption is an attractive approach to
+    filesystem confidentiality. Filesystems access hard drive
+    partitions at the granularity of the sector (or block) where a
+    sector is typically 4096 bits: read and write requests are
+    expressed in sector numbers, and data is read and modified a
+    sector at at a time. Disk sector encryption systems present a
+    ``virtual partition'' to the filesystem, mapping each sector of
+    the virtual partition to the corresponding sector, through an
+    encrypting transformation, on a physical disk partition with
+    the same disk geometry. The performance is typically better
+    than file-level encryption schemes, since every logical sector
+    read or write results in exactly one physical sector read or
+    write, and confidentiality is also better: not only are file
+    contents obscured, but also filenames, file sizes, directory
+    structure and modification dates. These schemes are also
+    flexible since they make no special assumptions about the way
+    the filesystem stores the file data; they work equally well
+    with raw database partitions as with filesystems, and can be
+    transparently layered underneath disk caching and disk
+    compression schemes. Linux provides some support for such
+    filesystems through the ``/dev/loop0'' filesystem device.</p>
+
+    <p>The stream cipher SEAL [<a href="bibliography.html#seal" shape="rect">17</a>] is well suited to this
+    need. SEAL provides a strong cryptographic PRNG (CPRNG) whose
+    output is seekable. Thus the entire disk can be treated as a
+    single contiguous array of bytes and XORred with the output
+    from the CPRNG; when making reads or writes of specific sectors
+    the appropriate portion of the output can be generated without
+    the need to generate the preceding bytes. The same effect can
+    be achieved, somewhat less efficiently, by keying a CPRNG such
+    as ARCFOUR [<a href="bibliography.html#rc4" shape="rect">10</a>] with a
+    (key, sector number) pair and generating 512 bytes with which
+    to encrypt the sector. These schemes are highly efficient and
+    provide good security against an attacker who seizes an
+    encrypted hard drive and attempts to gain information about its
+    contents.</p>
+
+    <p>However, this is not strong against attackers with other
+    channels open to them. They may have user privileges on the
+    system they're trying to attack, and be able to access the
+    ciphertext stored on the hard drive at times when it's shut
+    down. Or they may try to modify sectors with known contents
+    while carrying a drive from place to place. They may even be
+    able to place hardware probes on the drive chain while logged
+    in as a normal user, and sniff or modify ciphertext. Against
+    these attacks, SEAL and ARCFOUR (used as described) are
+    ineffective. For example, an attacker can write a large file of
+    all zeroes and thereby find the fixed encryption stream
+    associated with many sectors; once the file is deleted, the
+    sectors might be re-used by other users with secure data to
+    write, and this data is easily decrypted by XORing with the
+    known stream. Or, if attackers can make a guess of the
+    plaintext in a given sector, they can modify this to another
+    plaintext of their choosing while they have access to the drive
+    by XORing the ciphertext with the XOR difference between the
+    two plaintexts.</p>
+
+    <p>File-based encryption schemes defeat these attacks by using
+    a new random IV for each new plaintext and authenticating with
+    a MAC. However, applying these techniques directly to sector
+    encryption would require that the ciphertext for each sector be
+    larger than the plaintext, typically by at least 64 bytes. Thus
+    either the plaintext sectors would need to be slightly smaller
+    than the natural hardware sector size, harming performance when
+    mapping files into memory (and necessitating a thorough
+    re-engineering of the filesystem code) or auxiliary information
+    would have to be stored in other sectors, potentially adding a
+    seek to each read and write. In either case the size overhead
+    will be about 1.5 - 3.1%. It's worth investigating what can be
+    achieved without incurring these penalties.</p>
+
+    <p>SFS [<a href="bibliography.html#sfs" shape="rect">9</a>] uses a keyless
+    mixing transformation on the plaintext before applying a block
+    chaining stream cipher. This greatly reduces the practical
+    usefulness of many such attacks, but it falls short of the
+    highest security that pure disk sector encryption systems can
+    aspire to: that the mapping between each virtual and physical
+    disk sector appears to be an independent random permutation to
+    an attacker who expends insufficient computation to
+    exhaustively search the keyspace. In other words, the
+    theoretical best solution under these constraints is a strong
+    randomised large block cipher.</p>
+
+    <p>Several proposals exist for building large block ciphers
+    from standard cryptographic components such as hash functions
+    and stream ciphers [<a href="bibliography.html#bearlion" shape="rect">1</a>,<a href="bibliography.html#beast" shape="rect">11</a>,<a href="bibliography.html#onvariable" shape="rect">2</a>]; however, these are
+    not randomised ciphers, and as Section <a href="avalanche_and_certif.html#sec:collision" shape="rect">2</a> shows,
+    they have certificational weaknesses. More seriously, no
+    proposal comes close to offering the performance needed: bit
+    rates equal to or better than disk transfer rates. Since small
+    improvements in disk access efficiency can mean big
+    improvements to every part of the user experience, and since
+    performance considerations are one of the main reasons why
+    filesystem encryption is not more widely used, it seems
+    worthwhile to develop a new cipher designed specifically to
+    meet this need.</p>
+
+    <p>The rest of this paper is organised as follows. Section <a href="avalanche_and_certif.html#sec:collision" shape="rect">2</a> describes
+    a certificational weakness applicable to several existing
+    classes of large block cipher, and proposes a quantitiative
+    measure of avalanche based on the attack. Section <a href="mercy_design_goals.html#sec:designgoals" shape="rect">3</a> lays out
+    the design goals for the solution here, a new block cipher
+    Mercy with a native block size of 4096 bits, and Section <a href="description_of_mercy.html#sec:mercyspec" shape="rect">4</a> describes
+    the cipher itself. Section <a href="design_of_mercy.html#sec:design" shape="rect">5</a> discusses the
+    design of the cipher in detail with reference to the
+    performance and security goals of Section <a href="mercy_design_goals.html#sec:designgoals" shape="rect">3</a>. Finally
+    Section <a href="conclusions.html#sec:conclusions" shape="rect">6</a>
+    discusses some of the lessons learned in the design of
+    Mercy.</p>
+    <hr/>
+    <!--Navigation Panel--><a id="tex2html40" name="tex2html40" href="avalanche_and_certif.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html38" name="tex2html38" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html32" name="tex2html32" href="./" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html41" name="tex2html41" href="avalanche_and_certif.html" shape="rect">Avalanche and certificational
+    weaknesses</a> <strong> Up:</strong> <a id="tex2html39" name="tex2html39" href="./" shape="rect">Mercy: a fast large</a> <strong>
+    Previous:</strong> <a id="tex2html33" name="tex2html33" href="./" shape="rect">Mercy: a fast large</a> 
+    <!--End of Navigation Panel--></p>
+
+    <address>
+      mercy@paul.cluefactory.org.uk
+    </address>
+  </body>
+</html>

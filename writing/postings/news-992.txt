@@ -1,0 +1,102 @@
+X-From-Line: nobody Thu Feb  1 12:17:33 2001
+Sender: paul@saltationism.subnet.hedonism.cluefactory.org.uk
+Newsgroups: sci.crypt
+Subject: Re: Barrett modular reduction
+References: <94nlm2$sm$1@nnrp1.deja.com> <94orld$vuu$1@nnrp1.deja.com> <94plgo$lso$1@nnrp1.deja.com> <94q1o4$2g2$1@nnrp1.deja.com> <94s5at$r18$1@nnrp1.deja.com>
+From: Paul Crowley <paul@JUNKCATCHER.cluefactory.org.uk>
+Date: 01 Feb 2001 12:17:32 +0000
+Message-ID: <87k87aiomb.fsf@saltationism.subnet.hedonism.cluefactory.org.uk>
+User-Agent: Gnus/5.0803 (Gnus v5.8.3) XEmacs/21.1 (Capitol Reef)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Lines: 86
+Xref: saltationism.subnet.hedonism.cluefactory.org.uk misc-news:992
+X-Gnus-Article-Number: 992   Thu Feb  1 12:17:33 2001
+
+advonet@my-deja.com writes:
+> 4x faster would be awsome! I'll try it and let you know how it comes
+> out.
+
+There are many tricks to speed up RSA operations; I enjoyed reading
+descriptions of some of them in Chapter 14 of the Handbook of Applied
+Cryptography recently.  Download chap14.pdf free from
+
+http://www.cacr.math.uwaterloo.ca/hac/
+
+In particular, you should get faster results with Montgomery
+multiplication than you do with Barrett reduction.  Their description
+of it is a bit hard to follow, so here's some hints.
+
+Definitions: m is the modulus, assumed constant and implicit
+throughout.  b is the base you're working in; on a normal PC, b = 2^32
+normally.  R is the smallest b^r greater than m; in other words, if r
+is the number of "digits" (ie words) used to represent m, then R =
+b^r.  Since m is odd, gcd(m,R)=1, and thus there exists a
+"multiplicative inverse" R' such that RR' = 1 (mod m), which you can
+find using Euclid's algorithm; if you're not familiar with this, read
+Chapter 2 of the HAC.
+
+In the example in Table 14.7 of HAC, they use base 10 (b = 10) so you
+can see what's going on.  m = 72635, five digits so r = 5 and R = 10^5
+= 100 000.  Follow the example alongside the text.
+
+Suppose we've got some number T that might be bigger than m; in fact 
+0 <= T < mR.  Barrett reduction would give us T mod m very rapidly.
+Faster yet, Montgomery reduction will give us TR' mod m.  Is this any
+use?  Yes, as I'll explain later.
+
+Suppose the first r "digits" of T were all zero (say T = 3979600000 as
+in the example).  That would mean that T was conveniently divisible by
+R.  Then T/R (39796) would be the right answer; it's less than m, and
+it's equivalent to TR' mod m; in (mod m) world, multiplying by R' is
+just another way of dividing by R.  And dividing by R would simply be
+a matter of shifting those zeroes out of the way.
+
+So the trick with Montgomery reduction is to work out an integer U
+such that (T + Um) is divisible by R.  This is legit since you can add
+whatever multiples of m you like to T and it's still the same mod m.
+Better yet, you never explicitly have to work out all of U; you work
+it out a digit at a time, starting from the least significant digit,
+and then multiply that digit by m and add it to T.  This turns each
+digit of T to zero in turn, starting with the least significant
+digit.  Once you've zeroed r digits, you can divide by R.  Look at the
+example and the algorithm 14.32 to see how this is done.
+
+Now, T < mR and U < R, so (T + Um) < 2mR and (T + Um)/R < 2m.  So
+finally, check if the result is bigger than m and subtract m if not.
+Now you have TR' mod m.
+
+Montgomery multiplication is just multiplication any way you like [1]
+followed by Montgomery reduction, so Mont(x,y) = xyR' mod m.  This
+works because if x,y < m, then xy < m^2 < mR.
+
+Is this any use? Won't that R' constantly get in the way?  As it turns
+out, there is a way around it.  We use multiplication by R to correct
+for the R' factor (since RR' = 1 mod m), but here's the cunning bit:
+you correct *right at the start* of your exponentiation, to minimise
+the work you have to do at the end.  If you want to work out x^d,
+start by working out xR mod m.  You can think of this as the
+"Montgomery representation" of x, because it has this handy property:
+Mont(xR mod m, yR mod m) = (xR)(yR)R' = xyR (mod m) - so multiply the
+"Montgomery representation" of x and y together using Montgomery
+multiplication, and get the Montgomery representation of xy!  
+
+So, if you're doing exponentiation, convert x to Montgomery
+representation, work out whatever powers you like with Montgomery
+multiplication, and then convert back.  This will be much faster.
+With the right precomputed constant (R^2 mod m) you can even use
+Montgomery multiplication to do the conversion - HAC describes this.
+
+There's lots more tricks in Chapter 14 (including the CRT trick - see
+14.75) and you could have fun writing a super-optimised RSA
+implementation.  Let us know how you get on.
+
+Footnote [1]: For this I recommend checking out another great speedup,
+Karatsuba multiplication: see
+http://www.math.niu.edu/~rusin/known-math/99/karatsuba
+http://www.users.csbsju.edu/~cburch/proj/karat/
+-- 
+  __
+\/ o\ news@paul.cluefactory.org.uk
+/\__/ http://www.cluefactory.org.uk/paul/
+

@@ -1,0 +1,55 @@
+X-From-Line: nobody Wed Feb 10 10:17:35 1999
+Newsgroups: sci.crypt
+Subject: Re: Schneier key stretching?
+References: <79qcdc$1fu$1@nnrp1.dejanews.com>
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 10 Feb 1999 10:17:35 +0000
+Message-ID: <87btj24l6o.fsf@hedonism.demon.co.uk>
+X-Newsreader: Gnus v5.5/XEmacs 20.4 - "Emerald"
+Lines: 42
+Xref: hedonism.demon.co.uk misc-news:619
+X-Gnus-Article-Number: 619   Wed Feb 10 10:17:35 1999
+
+The DoggFather <mikedogg@my-dejanews.com> writes:
+> What is Schneier's "key stretching" method?  I don't think it's in his book,
+> nor his web site.  Search engines couldn't find it.  Links to relevent
+> websites would be helpful, unless someone has the kind heart to oust my
+> ignorance of this subject with a layman-level explanation.  Thanks.
+
+John Kelsey, Bruce Schneier, Chris Hall, David Wagner, "Secure
+Applications of Low-Entropy Keys",
+http://www.counterpane.com/low-entropy.pdf
+
+Passphrases usually aren't very good; users generally aren't very good
+at thinking of them.  So even if your secret key is encrypted with
+256-bit Serpent, the key used will be generated from your passphrase,
+so the attacker can avoid trying to guess all 2^256 keys if they can
+simply try around 2^40 (or fewer) likely passphrases to get in.
+
+Key stretching makes the transformation between passphrase and key
+really expensive to compute.  The downside is that when you type in
+your passphrase to decrypt your messages, it'll take perhaps half a
+second to verify rather than half a millisecond.  The upside is that
+it will also take your attacker a thousand times as long to reject
+each guess at your passphrase, which is nearly as good as increasing
+your passphrase entropy by ten bits.
+
+In practice you should be able to get well over ten bits out of the
+technique.  This has actually been known for a while; the paper names
+it, describes it with care including some necessary precautions, and
+gives a proof that with reasonable assumptions a particular technique
+will be secure.
+
+Treat passphrases like radioactive waste; they're very secret and very
+poor, and require careful handling.  Pretty much every application
+that accepts a passphrase should apply the techniques described in
+this paper.  You can also apply some of the ideas to keys limited to
+40- or 56-bits for stupid legal reasons, though unlike passphrases
+it's not always clear that the time to stretch the key is acceptable.
+
+hope this helps,
+-- 
+  __
+\/ o\ paul@hedonism.demon.co.uk  http://www.hedonism.demon.co.uk/paul/ \ /
+/\__/ Paul Crowley            Upgrade your legacy NT machines to Linux /~\
+

@@ -1,0 +1,51 @@
+#!/usr/bin/python
+
+num_handlers = 0
+output_bits = 0
+
+def useBit(flip):
+    # print flip
+    # results.append(flip)
+    global output_bits
+    output_bits = output_bits +1
+
+class StreamHandler:
+    def __init__(self):
+        global num_handlers
+        num_handlers = num_handlers +1
+        self.lastcoin = None
+        self.streams = [None, None]
+
+    def streamPush(self, streamid, flip):
+        if self.streams[streamid] == None:
+            self.streams[streamid] = StreamHandler()
+        self.streams[streamid].push(flip)
+
+    def push(self, flip):
+        if self.lastcoin == None:
+            self.lastcoin = flip
+        else:
+            if self.lastcoin == flip:
+                self.streamPush(0, 1)
+                self.streamPush(1, flip)
+            else:
+                useBit(flip)
+                self.streamPush(0, 0)
+            self.lastcoin = None
+
+handler = StreamHandler()
+rn = open('/dev/urandom', 'r')
+
+input_bytes = 16386
+
+coins = rn.read(input_bytes)
+for char in coins:
+    c = ord(char)
+    for i in range(0,8):
+        handler.push((c >> i) & 1)
+
+print "Input bits:", input_bytes *8
+print "Handlers created:", num_handlers
+print "Output bits:", output_bits
+print "Ratio:", output_bits / (input_bytes*8.0)
+print "Reciprocal ratio:", input_bytes*8.0 / output_bits

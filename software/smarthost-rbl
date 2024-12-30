@@ -1,0 +1,97 @@
+#!/usr/bin/perl -w
+# -*- mode: perl -*-
+
+$rcsid = q$Id: smarthost-rbl 1.1 Sat, 19 Jun 1999 19:19:22 +0100 paul $;
+
+use strict;
+no strict 'vars';
+use vars qw($rcsid $opt_help $opt_version $opt_verbose);
+
+use Getopt::Long;
+use Mail::Header;
+use Net::DNS;
+
+$opt_verbose = 1;
+$opt_help = 0;
+$opt_version = 0;
+$opt_do_query = 0;
+$opt_show_received = 0;
+
+GetOptions qw(version help verbose! do-query! show-received!),
+  or die "Couldn't parse command line (try --help), stopped";
+
+if ($opt_help) {
+  print 
+"Usage: $0 [OPTION]...
+  or:  $0 --help
+  or:  $0 --version
+
+  --[no]verbose
+  --help
+  --version
+";
+  exit;
+}
+
+if ($opt_version) {
+  print "RCS version information: $rcsid\n";
+  exit;
+}
+
+print "Hello, world!\n";
+
+$res = new Net::DNS::Resolver;
+
+FILE: for $filename (@ARGV) {
+  unless(open MAIL, $filename) {
+    warn "Failed to open $filename: $!";
+    next FILE;
+  }
+  $head = new Mail::Header \*MAIL, MailFrom => "COERCE";
+
+  foreach ($head->get("Subject")) {
+    print "Subject: $_";
+  }
+ RECEIVED: foreach ($head->get("Received")) {
+    print "Received: $_" if $opt_show_received;
+    next RECEIVED if (/^from \S+\.mail\.demon\.net/);
+    if (($dquad) = /\(\[([0-9.]+)\]\)/) {
+      last RECEIVED;
+    }
+  }
+  
+  if ($dquad) {
+    print "IP address of sender: $dquad\n";
+    $rbl_address = join('.', (reverse(split(/\./, $dquad)),  
+			      qw(rbl maps vix com)));
+    # print "RBL address: $rbl_address\n";
+    
+    if ($opt_do_query) {
+      $packet = $res->send($rbl_address, 'TXT');
+      @rrs = $packet->answer;
+      if (@rrs) {
+	#print "Response: \n";
+	#$packet->print;
+
+	foreach $rr ($packet->answer) {
+	  my $type = $rr->type;
+	  unless ($type eq "TXT") {
+	    print "Unexpected response type $type, skipping\n";
+	    next;
+	  }
+	  print "TXT: ", $rr->txtdata, "\n";
+	}
+      } else {
+	print "Host is not listed in RBL.\n";
+      }
+    }
+  } else {
+    print "No dotted quad host found, skipping...\n";
+  }
+  close MAIL or die "Close of mailfile failed: $!, stopped";
+  print "\n";
+}
+
+
+
+print "Done.\n" if $opt_verbose;

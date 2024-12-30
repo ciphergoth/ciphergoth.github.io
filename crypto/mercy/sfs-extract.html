@@ -1,0 +1,259 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: SFS: Encryption considerations</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mercy</a> &gt;
+      SFS approach</p>
+<h1>SFS: Encryption considerations</h1>
+    
+<p>
+<em>extracted from the documentation of the <a href="./#sfs">SFS</a> disk block encryption tool, with
+    permission of the author; conversion to HTML mine.</em>
+</p>
+
+    
+<p>When a block cipher is converted to handle units of data
+    larger than its intrinsic block size, a number of weaknesses
+    can be introduced, depending on the mode of operation which is
+    chosen for the block cipher. For example, if two identical
+    ciphertext blocks are present in different locations in a file,
+    this may be used to determine the plaintext. If we can find two
+    identical blocks of ciphertext when cipher block chaining (CBC)
+    is used, then we know that:</p>
+
+<pre>
+    P[ i ] = d( C[ i ] ) ^ C[ i-1 ]
+    P[ j ] = d( C[ j ] ) ^ C[ j-1 ]
+</pre>
+
+    
+<p>where C is the ciphertext, P is the plaintext, and e() and
+    d() are encryption and decryption respectively. Now if C[ i ] =
+    C[ j ], then d( C[ i ] ) = d( C[ j ] ), which cancel out when
+    xor'd so that:</p>
+
+<pre>
+    P[ i ] ^ C[ i-1 ] = P[ j ] ^ C[ j-1 ]
+</pre>
+
+    
+<p>or:</p>
+
+<pre>
+     P[ j ] = P[ i ] ^ C[ i-1 ] ^ C[ j-1 ]
+</pre>
+
+    
+<p>Knowing C[ i ] and C[ j ] we can determine P[ i ] and P[ j
+    ], and knowing either P[ i ] or P[ j ] we can determine the
+    other.</p>
+
+    
+<p> Something similar holds when cipher feedback (CFB) mode is
+    used, except that now the decryption operation is:</p>
+
+<pre>
+    P[ i ] = e( C[ i-1 ] ) ^ C[ i ]
+    P[ j ] = e( C[ j-1 ] ) ^ C[ j ]
+</pre>
+
+    
+<p> Now if C[ i ] = C[ j ] then e( C[ i ] ) = e( C[ j ] )
+    (recall that in CFB mode the block cipher is only ever used for
+    encryption), so that they again cancel out, so:</p>
+
+<pre>
+    P[ i ] ^ e( C[ i-1 ] ) = P[ j ] ^ e( C[ j-1 ] )
+</pre>
+
+    
+<p>or:</p>
+
+<pre>
+    P[ i ] = P[ j ] ^ e( C[ i-1 ] ) ^ e( C[ j-1 ] )
+</pre>
+
+    
+<p>In general this problem is of little consequence since the
+    probability of finding two equal blocks of ciphertext when using a
+    160-bit block cipher on a dataset of any practical size is
+    negligible. More esoteric modes of operation such as plaintext
+    feedback (PFB) and ones whose acronyms have more letters than
+    Welsh place names tend to have their own special problems and
+    aren't considered here.</p>
+
+    
+<p>The problem does become serious, however, in the case of
+    sector-level encryption, where the initialization vector cannot be
+    varied. Although the IV may be unique for each sector, it remains
+    constant unless special measures such as reserving extra storage
+    for sector IV's which are updated with each sector write are
+    taken. If a sector is read from disk, a small change made to part
+    of it (for example changing a word in a text file), and the sector
+    written out to disk again, several unchanged ciphertext/plaintext
+    pairs will be present, allowing the above attack to be
+    applied. However, there are cases in which this can be a
+    problem. For example, running a program such as a disk
+    defragmenter will rewrite a large number of sectors while leaving
+    the IV unchanged, allowing an opponent access to large quantities
+    of XOR'd plaintext blocks simply by recording the disk contents
+    before and after the defragmentation process. Normally this
+    problem would be avoided by using a different IV for each
+    encrypted message, but most disk systems don't have the room to
+    store an entire sectors worth of data as well as the IV needed to
+    en/decrypt it.</p>
+
+    
+<p> An additional disadvantage of the CFB encryption mode is
+    that the data in the last block of a dataset may be altered by
+    an attacker to give different plaintext without it affecting
+    the rest of the block, since the altered ciphertext in the last
+    block never enters the feedback loop. This type of attack
+    requires that an opponent possess at least two copies of the
+    ciphertext, and that they differ only in the contents of the
+    last block. In this case the last ciphertext block from one
+    copy can be subsituted for the last ciphertext block in the
+    other copy, allowing a subtle form of message modification
+    attack. In fact in combination with the previously mentioned
+    weakness of CFB, an attacker can determine the XOR of the
+    plaintexts in the last block and substitute an arbitrary piece
+    of "encrypted" plaintext to replace the existing data.</p>
+
+    
+<p> There are several approaches to tackling this problem. The
+    most simplistic one is to permute the plaintext in a
+    key-dependant manner before encryption and after decryption.
+    This solution is unsatisfactory as it simply shuffles the data
+    around without necessarily affecting any particular plaintext
+    or ciphertext block. The desired goal of a change in any part
+    of the plaintext affecting the entire dataset is not
+    achieved.</p>
+
+    
+<p> A better solution is to encrypt data twice, once from front
+    to back and then from back to front<a href="#footnote1">[1]</a>. The front-to-back pass propagates
+    any dependencies to the back of the dataset, and the
+    back-to-front pass propagates dependencies back to the front
+    again. In this way a single change in any part of the plaintext
+    affects the entire dataset. The disadvantage of this approach
+    is that it at least halves the speed of the encryption, as all
+    data must be encrypted twice. If the encryption is done in
+    software, this may create an unacceptable loss of throughput.
+    Even with hardware assistance there is a noticeable slowdown,
+    as no hardware implementations easily support backwards
+    encryption, requiring the data to be reversed in software
+    before the second pass is possible.</p>
+
+    
+<p> The best solution is probably to use a word-wise scrambler
+    polynomial like the one used in SHA. With a block of plaintext
+    P this is:</p>
+
+<pre>
+    P[ i ] ^= P[ i-K1 ] ^ P[ i-K2 ]
+</pre>
+
+    
+<p> with suitable values for the constants K1 and K2. If K2 is
+    chosen to be 5 (the SHA block size in words) then the initial
+    values of the 5 words (which can be thought of as as P[ -5
+    ]...P[ -1 ]) are simply the sectorIV. The value of K1 is
+    arbitrary, SFS uses a value of 4.</p>
+
+    
+<p> This technique is used by first setting the initial values
+    of the 5 words to the sectorIV. The scrambler function is then
+    run over the entire data block, propagating all dependencies to
+    the last 5 words in the block. These last 5 words are then used
+    as the IV for the CFB encryption of the entire block. In this
+    way the encryption IV depends on all the bits in the block, and
+    the scrambling does a moderately good job of breaking up
+    statistical patterns in the plaintext. No information is lost,
+    so no randomness in the sectorIV is misplaced.</p>
+
+    
+<p> This also provides resistance to the selective-modification
+    attack which allows an attacker to change selected bits in the
+    last block of a CFB-encrypted dataset without damage. By
+    destroying the IV used in the CFB encryption, the first block
+    is completely corrupted, which is unlikely to go unnoticed.</p>
+
+    
+<p> To decrypt a dataset encrypted in this manner, the first 5
+    words of ciphertext are shifted into the feedback path, and the
+    remainder of the dataset is decrypted in the standard manner.
+    The last 5 decrypted words are then used as the IV to decrypt
+    the first encrypted block. Finally, the scrambler is run over
+    the recovered plaintext to undo the changes made during the
+    encryption scrambling.</p>
+
+    
+<p> The overall en/decryption process used by SFS, in the case
+    of 512-byte sectors and 32-bit words (so that each sector
+    contains 128 words), is:</p>
+
+<pre>
+    Encryption:
+
+        using sectorIV[ 0 ]...sectorIV[ 4 ] as the scrambler IV
+            scramble data[ 0 ]...data[ 127 ]
+        using data[ 127-5 ]...data[ 127-1 ] as the encryption IV
+            encrypt data[ 0 ]...data[ 127 ]
+
+    Decryption:
+
+        using data[ 0 ]...data[ 4 ] as the encryption IV
+            decrypt data[ 5 ]...data[ 127 ]
+        using data[ 127-5 ]...data[ 127-1 ] as the encryption IV
+            decrypt data[ 0 ]...data[ 4 ]
+        using sectorIV[ 0 ]...sectorIV[ 4 ] as the scrambler IV
+            scramble data[ 0 ]...data[ 127 ]
+</pre>
+
+    
+<p>where the scrambling operation is:</p>
+
+<pre>
+        data[ i ] ^= data[ i-4 ] ^ data[ i-5 ]
+</pre>
+
+    
+<p>as outlined above. Note that the i-4 and i-5 th values
+    referred to here are the original, scrambled values, not the
+    descrambled values. The easiest way to implement this is to
+    cache the last 5 scrambled values and cyclically overwrite them
+    as each word in the data buffer is processed.</p>
+
+    
+<p>
+<a id="footnote1" name="footnote1">Footnote [1]:</a> To be
+    precise, you need some sort of feedback from the end of a block on
+    the first encryption pass to the start of the block on the next
+    encryption pass. A block can be encrypted forwards twice as long
+    as the IV is wrapped back to the start of the block for the second
+    encryption pass.</p>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mercy</a> &gt;
+      SFS approach</p>
+</body>
+
+</html>

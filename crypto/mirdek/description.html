@@ -1,0 +1,779 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Description of the Mirdek card cipher</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+  
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mirdek</a> &gt;
+      Description</p>
+<h1>Description of the Mirdek card cipher</h1>
+    
+<p> Mirdek is a cipher you can carry out using only a pack of
+    cards, pen and paper, and a surface to work on; it's intended
+    to provide strong crypto to resist even the best-funded of
+    eavesdroppers.</p>
+
+    
+<h2>
+<a id="representation" name="representation">Cards as
+    letters, letters as numbers</a>
+</h2>
+
+    
+<p> Each card corresponds to a letter of the alphabet: black
+    Ace-King correspond to A-M, and red Ace-King to N-Z; thus, the
+    5 of Spades and the 5 of Clubs both represent "E", and the Jack
+    of Hearts and of Diamonds both represent "X". While learning
+    the cipher, it can help to write the corresponding letter on
+    the top right of each card - though of course, you don't want
+    to be caught with such a marked-up deck if you're trying to
+    hide your crypto habits from the Bad Guys. Where we refer to
+    "the letter for the card", this means the letter from the table
+    below, so the letter for the Jack of Hearts is "X".</p>
+
+    
+<p> We use this to represent the state of a pile of cards as a
+    sequence of letters; the first letter in the sequence is the
+    top card when the pile is face-up, so the sequence "CAR"
+    represents a pile of three face-up cards, with a black 3 on top
+    and a red 5 on the bottom. If the pile is face down, the "R"
+    will be on the top, but we still represent the sequence as
+    "CAR".</p>
+
+    
+<p> With this representation, you can't tell what suit the card
+    is, only what colour; but the distinction between hearts and
+    diamonds or between spades and clubs is never relevant for
+    Mirdek encryption, except as a handy way to divide the deck
+    into two functionally identical sub-piles.</p>
+
+    
+<p> Each letter also corresponds to a number from 1-26; thus,
+    counting out five cards is the same as counting to "E".</p>
+
+    
+<div align="CENTER">
+      
+<table border="3" bgcolor="#FFFFEE" align="CENTER" cellpadding="8" cellspacing="1">
+        
+<tr>
+          
+<td rowspan="3"><font color="#000000">Black</font></td>
+
+          <td><font color="#000000">A</font></td>
+
+          <td><font color="#000000">B</font></td>
+
+          <td><font color="#000000">C</font></td>
+
+          <td><font color="#000000">D</font></td>
+
+          <td><font color="#000000">E</font></td>
+
+          <td><font color="#000000">F</font></td>
+
+          <td><font color="#000000">G</font></td>
+
+          <td><font color="#000000">H</font></td>
+
+          <td><font color="#000000">I</font></td>
+
+          <td><font color="#000000">J</font></td>
+
+          <td><font color="#000000">K</font></td>
+
+          <td><font color="#000000">L</font></td>
+
+          <td><font color="#000000">M</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td><font color="#000000">Ace</font></td>
+
+          <td><font color="#000000">2</font></td>
+
+          <td><font color="#000000">3</font></td>
+
+          <td><font color="#000000">4</font></td>
+
+          <td><font color="#000000">5</font></td>
+
+          <td><font color="#000000">6</font></td>
+
+          <td><font color="#000000">7</font></td>
+
+          <td><font color="#000000">8</font></td>
+
+          <td><font color="#000000">9</font></td>
+
+          <td><font color="#000000">10</font></td>
+
+          <td><font color="#000000">Jack</font></td>
+
+          <td><font color="#000000">Queen</font></td>
+
+          <td><font color="#000000">King</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td><font color="#000000">1</font></td>
+
+          <td><font color="#000000">2</font></td>
+
+          <td><font color="#000000">3</font></td>
+
+          <td><font color="#000000">4</font></td>
+
+          <td><font color="#000000">5</font></td>
+
+          <td><font color="#000000">6</font></td>
+
+          <td><font color="#000000">7</font></td>
+
+          <td><font color="#000000">8</font></td>
+
+          <td><font color="#000000">9</font></td>
+
+          <td><font color="#000000">10</font></td>
+
+          <td><font color="#000000">11</font></td>
+
+          <td><font color="#000000">12</font></td>
+
+          <td><font color="#000000">13</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td rowspan="3"><font color="#AA0000">Red</font></td>
+
+          <td><font color="#AA0000">14</font></td>
+
+          <td><font color="#AA0000">15</font></td>
+
+          <td><font color="#AA0000">16</font></td>
+
+          <td><font color="#AA0000">17</font></td>
+
+          <td><font color="#AA0000">18</font></td>
+
+          <td><font color="#AA0000">19</font></td>
+
+          <td><font color="#AA0000">20</font></td>
+
+          <td><font color="#AA0000">21</font></td>
+
+          <td><font color="#AA0000">22</font></td>
+
+          <td><font color="#AA0000">23</font></td>
+
+          <td><font color="#AA0000">24</font></td>
+
+          <td><font color="#AA0000">25</font></td>
+
+          <td><font color="#AA0000">26</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td><font color="#AA0000">Ace</font></td>
+
+          <td><font color="#AA0000">2</font></td>
+
+          <td><font color="#AA0000">3</font></td>
+
+          <td><font color="#AA0000">4</font></td>
+
+          <td><font color="#AA0000">5</font></td>
+
+          <td><font color="#AA0000">6</font></td>
+
+          <td><font color="#AA0000">7</font></td>
+
+          <td><font color="#AA0000">8</font></td>
+
+          <td><font color="#AA0000">9</font></td>
+
+          <td><font color="#AA0000">10</font></td>
+
+          <td><font color="#AA0000">Jack</font></td>
+
+          <td><font color="#AA0000">Queen</font></td>
+
+          <td><font color="#AA0000">King</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td><font color="#AA0000">N</font></td>
+
+          <td><font color="#AA0000">O</font></td>
+
+          <td><font color="#AA0000">P</font></td>
+
+          <td><font color="#AA0000">Q</font></td>
+
+          <td><font color="#AA0000">R</font></td>
+
+          <td><font color="#AA0000">S</font></td>
+
+          <td><font color="#AA0000">T</font></td>
+
+          <td><font color="#AA0000">U</font></td>
+
+          <td><font color="#AA0000">V</font></td>
+
+          <td><font color="#AA0000">W</font></td>
+
+          <td><font color="#AA0000">X</font></td>
+
+          <td><font color="#AA0000">Y</font></td>
+
+          <td><font color="#AA0000">Z</font></td>
+        
+</tr>
+        <!-- Disgusted by my HTML?  Please tell me how to do it properly! -->
+      
+</table>
+    
+</div>
+
+    
+<h2>Basic operations</h2>
+
+    
+<p> Mirdek divides the pack into two equal halves, one
+    consisting entirely of spades and diamonds, the other of hearts
+    and clubs. We step through each card in turn in the one half
+    and use it to shuffle the other deterministically, then swap
+    the two over and do it again. You will need only the standard
+    52 cards - the jokers can be discarded.</p>
+
+    
+<p> The easiest way to try out the basic operations described
+    here is to shuffle the pack, then sort the cards onto two
+    piles: hearts and clubs on the left, diamonds and spades on the
+    right. We'll refer to the "left" and "right" piles throughout
+    this description. Once you've got the hang of the basic
+    operations, we'll start again and describe a complete
+    encryption process. The <a href="example.html">example
+    encryption</a> contains lots of examples of both
+    operations.</p>
+
+    
+<p> Hold the left pile face up in one hand, and place the right
+    pile face down on the table in front of you. You'll need a
+    table in front of you, since we're going to create three more
+    piles: a "discard" pile for cards from the right half, and two
+    "alternating" piles for cards from the left half.</p>
+
+    
+<p> 
+<strong>Counted cut</strong>: take the top card from the
+    face-down right pile and place it, face-up, on the discard
+    pile. Now count cards one by one from the top of the left pile
+    to the bottom, saying each successive letter of the alphabet as
+    you do so; stop after you've said the letter for the card
+    face-up on the discard pile. For example, if the discarded card
+    was a 5 of Clubs, this corresponds to an "E", so 5 cards should
+    be moved; if it were a 3 of Diamonds corresponding to "P", then
+    16 cards move.</p>
+
+    
+<blockquote>
+      
+<p> 
+<em>Example:</em> supposing the piles start in this
+      state:</p>
+
+      
+<ul>
+        
+<li>Discard: <strong>ULX</strong>
+</li>
+
+        
+<li>Right: <strong>IPDZOWKGSTVARMEQYBCFJNH</strong>
+</li>
+
+        
+<li>Left: <strong>JHFDBZLMNOPQRSTUVWYCGIAKXE</strong>
+</li>
+      
+</ul>
+
+      
+<p> Since the right pile is face-down, the top card will be
+      "H" (a black 8). We take this card and place it on top of the
+      discard pile. We then count eight cards from the top of the
+      left pile (counting "A, B, C, D, E, F, G, H!") and place each
+      in turn on the bottom. The cards moved, in sequence, are
+      "JHFDBZLM". The cards not moved are in the sequence
+      "NOPQRSTUVWYCGIAKXE". After the count cut, the decks are left
+      in this state:</p>
+
+      
+<ul>
+        
+<li>Discard: <strong>HULX</strong>
+</li>
+
+        
+<li>Right: <strong>IPDZOWKGSTVARMEQYBCFJN</strong>
+</li>
+
+        
+<li>Left: <strong>NOPQRSTUVWYCGIAKXEJHFDBZLM</strong>
+</li>
+      
+</ul>
+    
+</blockquote>
+
+    
+<p> This maneuver may sometimes leave the right pile empty.
+    Immediately this happens, place the left pile face-down in
+    place of the right pile, and pick up the discard pile, which
+    becomes the new left pile. Then turn over one card from the new
+    right pile onto the discard pile and use it for another counted
+    cut.</p>
+
+    
+<blockquote>
+      
+<p> 
+<em>Example:</em> supposing the piles start in this
+      state:</p>
+
+      
+<ul>
+        
+<li>Discard: <strong>
+        UFKZTGODRHCWQBJAPYLVXMISN</strong>
+</li>
+
+        
+<li>Right: <strong>E</strong>
+</li>
+
+        
+<li>Left: <strong>CUGWTBSJXZRHOLAQFNYMKPVIED</strong>
+</li>
+      
+</ul>
+
+      
+<p> So we move the "E" (black 5) to the top of the discard
+      pile, and count five cards ("CUGWT") onto the bottom of the
+      left pile.</p>
+
+      
+<ul>
+        
+<li>Discard: <strong>
+        EUFKZTGODRHCWQBJAPYLVXMISN</strong>
+</li>
+
+        
+<li>Right: <em>empty</em>
+</li>
+
+        
+<li>Left: <strong>BSJXZRHOLAQFNYMKPVIEDCUGWT</strong>
+</li>
+      
+</ul>
+
+      
+<p> But this leaves the right pile empty, and so the special
+      rule comes into play: swap the piles</p>
+
+      
+<ul>
+        
+<li>Discard: <em>empty</em>
+</li>
+
+        
+<li>Right: <strong>BSJXZRHOLAQFNYMKPVIEDCUGWT</strong>
+</li>
+
+        
+<li>Left: <strong>EUFKZTGODRHCWQBJAPYLVXMISN</strong>
+</li>
+      
+</ul>
+
+      
+<p> and cut again, this time moving the "T" (red 7) to the
+      discard pile and moving 20 cards ("EUFKZTGODRHCWQBJAPYL") to
+      the bottom of the new left pile.</p>
+
+      
+<ul>
+        
+<li>Discard: <strong>T</strong>
+</li>
+
+        
+<li>Right: <strong>BSJXZRHOLAQFNYMKPVIEDCUGW</strong>
+</li>
+
+        
+<li>Left: <strong>VXMISNEUFKZTGODRHCWQBJAPYL</strong>
+</li>
+      
+</ul>
+    
+</blockquote>
+
+    
+<p> 
+<strong>Letter search</strong>: Choose a letter to search
+    for; what determines this depends on how the search is used and
+    is described later. Deal cards from the top of the left pile
+    onto the two alternating piles, which (as the name suggests)
+    each receive cards in turn just as with a normal deal, and stop
+    immediately the card matching the searched-for letter is dealt.
+    Now place the pile containing the searched-for card on top of
+    the other pile (if there are any cards in it), and put them
+    underneath the left pile in your hand. The right and discard
+    piles are wholly unaffected.</p>
+
+    
+<blockquote>
+      
+<p> 
+<em>Example:</em> assume we're searching for the letter
+      "S" and the left pile starts in this state:</p>
+
+      
+<ul>
+        
+<li>Left: <strong>EJFDBZLMPNOQRSTUVWYAGICKXH</strong>
+</li>
+      
+</ul>
+
+      
+<p> So we start dealing the cards into two face-up piles: the
+      "E" (black 5) onto one, the J (black 10) onto another, the
+      "F" face-up on top of the "E" and the "D" face up onto the
+      "J"... By the time we've dealt the "S" (red 6), we're left
+      with two piles "ROPLBFE" and "SQNMZDJ" on the table, with
+      "TUVWYAGICKXH" left in our hand. Gather together the two
+      piles on the table in the other hand, making sure the
+      searched-for "S" is on top ("SQNMZDJROPLBFE") and put that
+      underneath the cards in your hand, to form</p>
+
+      
+<ul>
+        
+<li>Left: <strong>TUVWYAGICKXHSQNMZDJROPLBFE</strong>
+</li>
+      
+</ul>
+    
+</blockquote>
+
+    
+<h2>Initialisation</h2>
+
+    
+<p> These two basic operations are all that is needed to
+    encrypt a message with Mirdek. Encryption is preceded by a
+    setup phase in three parts: initialisation, keying, and
+    mixing.</p>
+
+    
+<p> Sort the deck into suits, and sort each suit in order, with
+    Aces face up on the top. Place the spades on top of the
+    diamonds to make the left pile, and the clubs on top of the
+    hearts to make the right pile. If the cards were marked with
+    letters as suggested before, then each pile will read "A-Z" in
+    order.</p>
+
+    
+<p> Now pick up the right pile (with the clubs and hearts) and
+    shuffle them thoroughly. This introduces some randomness into
+    the encryption process which allows the same passphrase to be
+    used many times without harming security. Holding the deck
+    face-up in your hand, take each card in turn from the top and
+    write down the letter for the card, arranging them in groups of
+    five letters; make a face-down pile of the cards you've
+    recorded. Place the last card on the pile without writing down
+    the letter; you should only write 25 letters. These form the
+    first 25 letters of the ciphertext.</p>
+
+    
+<p> You now have the right pile face down on the table; pick up
+    the left pile (diamonds and spades) and hold it face up in your
+    hand, ready for the keying phase.</p>
+
+    
+<h2>Keying</h2>
+
+    
+<p> Keying consists of two alternating steps. For each letter
+    in the keyphrase, take the following two steps:</p>
+
+    
+<ul>
+      
+<li>Make a counted cut.</li>
+
+      
+<li>Then do a letter search for the next unused letter of the
+      keyphrase.</li>
+    
+</ul>
+
+    
+<p> If your keyphrase has fewer than 26 letters, then when you
+    finish the number of letters in the keyphrase will be the
+    number of cards in the discard pile.</p>
+
+    
+<h2>Mixing</h2>
+
+    
+<p> After the keying phase is complete, the next phase
+    thoroughly mixes the state of the deck before encryption
+    starts. Place the rest of the right hand pile <strong>
+    below</strong> the discard pile (so the top card of the face-up
+    discard pile is unchanged), put down the left pile face-down as
+    the new right pile, and pick up the discard pile which becomes
+    the new left pile. Then, for each card in the right deck in
+    turn, starting with the face-down top card, convert the card to
+    a letter and perform a letter search (on the left pile - letter
+    search is always on the left pile). Once the right pile is
+    empty, place the left pile face down and pick up the discard
+    pile, so the piles are swapped.</p>
+
+    
+<p> You're now ready to begin encryption!</p>
+
+    
+<h2>Encryption</h2>
+
+    
+<p> As with <a href="../solitaire/">Solitaire</a>, all
+    non-letters in the plaintext are discarded; numbers must be
+    spelled out in full (unless you agree a code to represent them
+    such as "XABCZDX = 12304"). It is then arranged into groups of
+    five, and the last group padded with "X"s if it is short. Thus,
+    in the example, we encrypt "plaintext" using "PLAIN TEXTX". The
+    ciphertext should also be written in groups of five.</p>
+
+    
+<p> Encryption is very similar to keying with one important
+    difference. For each letter in the plaintext, take the
+    following two steps:</p>
+
+    
+<ul>
+      
+<li>Make a counted cut. Remember that every 25 letters this
+      will exhaust the right deck, at which point you swap packs
+      and cut again.</li>
+
+      
+<li>Then do a letter search for the next unused letter of the
+      plaintext. As you deal each card in the search, count using
+      letters of the alphabet; the letter you reach when you deal
+      the searched-for card is the next letter of the ciphertext.
+      For example, if you deal five cards before the search stops,
+      then the ciphertext letter is "E". If the searched-for card
+      is on the top of the pack, the ciphertext will be "A"; if
+      it's on the bottom, it's "Z".</li>
+    
+</ul>
+
+    
+<p> Now that you've read this far, take a look at the <a href="example.html">example encryption</a> and see if it agrees
+    with the sense of the cipher you have so far.</p>
+
+    
+<h2>Tidying up</h2>
+
+    
+<p> Once encryption is complete, the state of the deck must be
+    destroyed; otherwise, the cipher can be run backwards to
+    recover the plaintext and possibly even the key. Shuffling
+    works, but it's very hard to know when you've shuffled enough
+    to hide not only your key and message but the fact that you've
+    been using crypto at all. Better is to sort the deck entirely
+    into order; an ordered deck should not attract suspicion since
+    it's the result of an ordinary game of Patience, and much of
+    the work of sorting it is already done; it will also make it
+    easier next time you want to encrypt or decrypt a message. I've
+    found the easiest way to do it is to sort each pile into reds
+    and blacks first, then go through each pile in turn fanning out
+    the 13 cards into your hand and taking out each card in turn,
+    highest to lowest (ie look for the King, then the Queen...)</p>
+
+    
+<h2>Decryption</h2>
+
+    
+<p> Once you've got the hang of how encryption works, it should
+    be clear how to decrypt a Mirdek-encrypted message as
+    follows:</p>
+
+    
+<ul>
+      
+<li>Initialisation - the left deck is sorted as before, but
+      the right deck must be arranged in the state indicated by the
+      first 25 letters. Clearly, the 26th card will be whichever is
+      left over once you've arranged the other 25.</li>
+
+      
+<li>Keying and mixing - as before. If the key and initial
+      states used are the same, your decks should now be in the
+      same state as when your correspondent started their
+      encryption process.</li>
+
+      
+<li>
+        Decryption - for each letter of the ciphertext: 
+
+        <ul>
+          
+<li>Make a counted cut just as with encryption</li>
+
+          
+<li>Now deal cards as if in a letter search, but only
+          deal as many cards as the ciphertext letter indicates (so
+          "E" tells you to deal five cards). The last card dealt
+          corresponds to the next plaintext letter. Pick up the
+          piles as with a normal letter search.</li>
+        
+</ul>
+      
+</li>
+
+      
+<li>Tidying up - as before.</li>
+    
+</ul>
+
+    
+<h2>Timing notes</h2>
+
+    
+<p> The counted cut, as described, is rather time consuming.
+    You can speed this up by counting the cards into your hand
+    before moving them to the bottom (so long as you're sure not to
+    reverse the order), and by counting cards rather than letters:
+    "Ace, 2, 3, 4, 5" in the case of the 5 of Clubs, and "Ace, 2,
+    3, ..., 9, 10, Jack, Queen, King, Ace, 2, 3" in the case of the
+    3 of Diamonds, since red cards come after black cards in the
+    letter ordering. You can speed up handling the red cards even
+    more by counting cards from the bottom: for an 8 of Diamonds,
+    count "9, 10, Jack, Queen, King" from the bottom of the deck
+    into your other hand and then place them on the top; this is
+    easiest if you temporarily turn the pile upside down in your
+    hand. And of course, a red King (corresponding to "Z") rotates
+    the pile all the way around, leaving it unchanged.</p>
+
+    
+<p> You can also speed up the initialisation phase if you can
+    get the knack of sweeping out the cards in the right pile along
+    the table so that the number and suit of every card is visible,
+    so you can just start writing without having to put down your
+    pen to move cards. Remember that the face-up top card goes
+    first, and the last card is not recorded at all.</p>
+
+    
+<p> After a little practice, it should be possible to encrypt a
+    short message in under twenty minutes:</p>
+
+    
+<ul>
+      
+<li>Initialisation takes about three minutes, including a
+      minute for shuffling the right half</li>
+
+      
+<li>Keying takes twenty to thirty seconds per letter of the
+      keyphrase</li>
+
+      
+<li>Mixing takes about five minutes</li>
+
+      
+<li>Encryption takes a little under thirty seconds per letter
+      of the ciphertext</li>
+
+      
+<li>Tidying up takes about two minutes.</li>
+    
+</ul>
+
+    
+<h2>Security notes</h2>
+
+    
+<p> (obviously, more should go here)</p>
+
+    
+<ul>
+      
+<li>All operations are reversible - the "letter search" is
+      reversible given either the plaintext or the ciphertext,
+      because the searched-for card ends up as far from the back as
+      it was from the front.</li>
+
+      
+<li>Each possible card drawn from the right pile in a count
+      cut leads to a different ciphertext for the next plaintext
+      letter, and a different depth of mixing for the left
+      pile.</li>
+
+      
+<li>One likely side-channel attack poses great risk: a covert
+      listening device allowing the listener to hear how many cards
+      are moved by each step will give away the key and the
+      ciphertext. If the key is longer than 25 characters, the IV
+      can be picked up by this means as well, obviating the need to
+      intercept the encrypted message in order to find the
+      plaintext.</li>
+    
+</ul>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mirdek</a> &gt;
+      Description</p>
+</body>
+
+</html>

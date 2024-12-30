@@ -1,0 +1,83 @@
+# -*- mode: perl -*-
+
+$opt_chatfiles = 'quiet-green,quiet-red,quiet-purple';
+# $opt_chatfiles = 'loud-green,loud-red,loud-purple';
+
+use vars qw($opt_fetch_news $opt_del_news_batch $opt_send_news);
+
+$opt_fetch_news = 0;
+$opt_send_news = 1;
+$opt_del_news_batch = 1;
+
+$opt_sleep_time = 10;
+
+push @user_options, qw(fetch-news!);
+push @root_options, 
+    (qw(send-news! del-news-batch!),
+     "from-cron" => sub {
+	 $opt_max_idle_time = 65;
+	 $opt_sleep_time = 30;
+	 $opt_max_dials = 12;
+     });
+;
+
+sub before_connect {
+    su_launch(0, 'mail', '/usr/bin/mailq');
+    su_launch(0, 'nobody', 'id');
+    sleep(1);
+    1;
+}
+
+sub once_connected {
+    launch(0, "/usr/sbin/netdate ntp.demon.co.uk ntp1.demon.co.uk ntp2.demon.co.uk ; /sbin/hwclock --systohc --utc; date");
+    su_launch(1, 'nobody', qw(finger status@gate.demon.co.uk));
+    su_launch(2, 'nobody', qw(finger hedonism@post.demon.co.uk));
+    su_launch(5, 'mail', '/usr/sbin/runq');
+    su_launch(10, 'homepgs', qw(/home/homepgs/scripts/put-homepages));
+    if ($opt_fetch_news) {
+	my $file_number = $$;
+	while (1) {
+	    $news_batchfile = "/var/lib/suck/batchfile.$file_number";
+	    unless (-e $news_batchfile) {
+		last;
+	    }
+	    $file_number += 99999;
+	}
+	su_launch(7, 'news', qw(suck news.demon.co.uk -a),
+	       "-S", "/var/lib/suck/suck.log",
+	       "-br", $news_batchfile);
+    }
+    if ($opt_send_news) {
+	su_launch(15, 'news', qw(/usr/lib/news/bin/nntpsend));
+    }
+    1;
+}
+
+sub do_pjob {
+    su_launch(0, 'mail', '/usr/sbin/runq');
+    1;
+}
+
+sub before_exit {
+    if (defined $news_batchfile) {
+	verbose "Starting rnews";
+	my $rnews_return = system(qw(rnews -v), $news_batchfile);
+	if ($rnews_return == 0) {
+	    timing_announce "rnews finished";
+	    if ($opt_del_news_batch) {
+		if (!-l $news_batchfile && -f _) {
+		    verbose "deleting batchfile $news_batchfile";
+		    unlink $news_batchfile;
+		} else {
+		    logmsg "Batchfile $news_batchfile not regular file, not deleted";
+		}
+	    }
+	} else {
+	    timing_announce "rnews failed with return code $rnews_return";
+	    logmsg "Batchfile $news_batchfile not deleted";
+	}
+    }
+    1;
+}
+
+1;

@@ -1,0 +1,704 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Example of the Mirdek card cipher at work</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+  
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mirdek</a> &gt;
+      Example</p>
+<h1>Example of the Mirdek card cipher at work</h1>
+    
+<p> These examples use the <a href="description.html#representation">representation</a> from
+    the cipher description pages; the table is reproduced below for
+    convenience.</p>
+
+    
+<div align="CENTER">
+      
+<table border="3" bgcolor="#FFFFEE" align="CENTER" cellpadding="5" cellspacing="1">
+        
+<tr>
+          
+<td><font color="#000000">&nbsp;</font></td>
+
+          <td><font color="#000000">A</font></td>
+
+          <td><font color="#000000">B</font></td>
+
+          <td><font color="#000000">C</font></td>
+
+          <td><font color="#000000">D</font></td>
+
+          <td><font color="#000000">E</font></td>
+
+          <td><font color="#000000">F</font></td>
+
+          <td><font color="#000000">G</font></td>
+
+          <td><font color="#000000">H</font></td>
+
+          <td><font color="#000000">I</font></td>
+
+          <td><font color="#000000">J</font></td>
+
+          <td><font color="#000000">K</font></td>
+
+          <td><font color="#000000">L</font></td>
+
+          <td><font color="#000000">M</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td><font color="#000000">Black</font></td>
+
+          <td><font color="#000000">Ace</font></td>
+
+          <td><font color="#000000">2</font></td>
+
+          <td><font color="#000000">3</font></td>
+
+          <td><font color="#000000">4</font></td>
+
+          <td><font color="#000000">5</font></td>
+
+          <td><font color="#000000">6</font></td>
+
+          <td><font color="#000000">7</font></td>
+
+          <td><font color="#000000">8</font></td>
+
+          <td><font color="#000000">9</font></td>
+
+          <td><font color="#000000">10</font></td>
+
+          <td><font color="#000000">Jack</font></td>
+
+          <td><font color="#000000">Queen</font></td>
+
+          <td><font color="#000000">King</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td><font color="#FF0000">Red</font></td>
+
+          <td><font color="#FF0000">Ace</font></td>
+
+          <td><font color="#FF0000">2</font></td>
+
+          <td><font color="#FF0000">3</font></td>
+
+          <td><font color="#FF0000">4</font></td>
+
+          <td><font color="#FF0000">5</font></td>
+
+          <td><font color="#FF0000">6</font></td>
+
+          <td><font color="#FF0000">7</font></td>
+
+          <td><font color="#FF0000">8</font></td>
+
+          <td><font color="#FF0000">9</font></td>
+
+          <td><font color="#FF0000">10</font></td>
+
+          <td><font color="#FF0000">Jack</font></td>
+
+          <td><font color="#FF0000">Queen</font></td>
+
+          <td><font color="#FF0000">King</font></td>
+        
+</tr>
+
+        
+<tr>
+          
+<td><font color="#FF0000">&nbsp;</font></td>
+
+          <td><font color="#FF0000">N</font></td>
+
+          <td><font color="#FF0000">O</font></td>
+
+          <td><font color="#FF0000">P</font></td>
+
+          <td><font color="#FF0000">Q</font></td>
+
+          <td><font color="#FF0000">R</font></td>
+
+          <td><font color="#FF0000">S</font></td>
+
+          <td><font color="#FF0000">T</font></td>
+
+          <td><font color="#FF0000">U</font></td>
+
+          <td><font color="#FF0000">V</font></td>
+
+          <td><font color="#FF0000">W</font></td>
+
+          <td><font color="#FF0000">X</font></td>
+
+          <td><font color="#FF0000">Y</font></td>
+
+          <td><font color="#FF0000">Z</font></td>
+        
+</tr>
+      
+</table>
+    
+</div>
+
+    
+<h2>Initialisation</h2>
+
+<pre>
+Initialisation vector: IPDZO WKGST VARME QYBCF JNHUL
+Key: KEYPHRASE
+Plaintext:
+PLAIN TEXTX
+
+Initial state of piles:
+Discard: 
+Right:   IPDZOWKGSTVARMEQYBCFJNHULX
+Left:    ABCDEFGHIJKLMNOPQRSTUVWXYZ
+</pre>
+
+    
+<h2>Keying</h2>
+
+<pre>
+Count cut:
+Top card of discard pile: X
+Putting together pile: YZ + ABCDEFGHIJKLMNOPQRSTUVWX
+Discard: X
+Right:   IPDZOWKGSTVARMEQYBCFJNHUL
+Left:    YZABCDEFGHIJKLMNOPQRSTUVWX
+
+Mixing in K from the passphrase:
+Dealing cards: YZABCDEFGHIJK
+Putting together pile: LMNOPQRSTUVWX + KIGECAY + JHFDBZ
+Discard: X
+Right:   IPDZOWKGSTVARMEQYBCFJNHUL
+Left:    LMNOPQRSTUVWXKIGECAYJHFDBZ
+
+Count cut:
+Top card of discard pile: L
+Putting together pile: XKIGECAYJHFDBZ + LMNOPQRSTUVW
+Discard: LX
+Right:   IPDZOWKGSTVARMEQYBCFJNHU
+Left:    XKIGECAYJHFDBZLMNOPQRSTUVW
+
+Mixing in E from the passphrase:
+Dealing cards: XKIGE
+Putting together pile: CAYJHFDBZLMNOPQRSTUVW + EIX + GK
+Discard: LX
+Right:   IPDZOWKGSTVARMEQYBCFJNHU
+Left:    CAYJHFDBZLMNOPQRSTUVWEIXGK
+
+Count cut:
+Top card of discard pile: U
+Putting together pile: EIXGK + CAYJHFDBZLMNOPQRSTUVW
+Discard: ULX
+Right:   IPDZOWKGSTVARMEQYBCFJNH
+Left:    EIXGKCAYJHFDBZLMNOPQRSTUVW
+
+Mixing in Y from the passphrase:
+Dealing cards: EIXGKCAY
+Putting together pile: JHFDBZLMNOPQRSTUVW + YCGI + AKXE
+Discard: ULX
+Right:   IPDZOWKGSTVARMEQYBCFJNH
+Left:    JHFDBZLMNOPQRSTUVWYCGIAKXE
+
+Count cut:
+Top card of discard pile: H
+Putting together pile: NOPQRSTUVWYCGIAKXE + JHFDBZLM
+Discard: HULX
+Right:   IPDZOWKGSTVARMEQYBCFJN
+Left:    NOPQRSTUVWYCGIAKXEJHFDBZLM
+
+Mixing in P from the passphrase:
+Dealing cards: NOP
+Putting together pile: QRSTUVWYCGIAKXEJHFDBZLM + PN + O
+Discard: HULX
+Right:   IPDZOWKGSTVARMEQYBCFJN
+Left:    QRSTUVWYCGIAKXEJHFDBZLMPNO
+
+Count cut:
+Top card of discard pile: N
+Putting together pile: EJHFDBZLMPNO + QRSTUVWYCGIAKX
+Discard: NHULX
+Right:   IPDZOWKGSTVARMEQYBCFJ
+Left:    EJHFDBZLMPNOQRSTUVWYCGIAKX
+
+Mixing in H from the passphrase:
+Dealing cards: EJH
+Putting together pile: FDBZLMPNOQRSTUVWYCGIAKX + HE + J
+Discard: NHULX
+Right:   IPDZOWKGSTVARMEQYBCFJ
+Left:    FDBZLMPNOQRSTUVWYCGIAKXHEJ
+
+Count cut:
+Top card of discard pile: J
+Putting together pile: RSTUVWYCGIAKXHEJ + FDBZLMPNOQ
+Discard: JNHULX
+Right:   IPDZOWKGSTVARMEQYBCF
+Left:    RSTUVWYCGIAKXHEJFDBZLMPNOQ
+
+Mixing in R from the passphrase:
+Dealing cards: R
+Putting together pile: STUVWYCGIAKXHEJFDBZLMPNOQ + R + 
+Discard: JNHULX
+Right:   IPDZOWKGSTVARMEQYBCF
+Left:    STUVWYCGIAKXHEJFDBZLMPNOQR
+
+Count cut:
+Top card of discard pile: F
+Putting together pile: CGIAKXHEJFDBZLMPNOQR + STUVWY
+Discard: FJNHULX
+Right:   IPDZOWKGSTVARMEQYBC
+Left:    CGIAKXHEJFDBZLMPNOQRSTUVWY
+
+Mixing in A from the passphrase:
+Dealing cards: CGIA
+Putting together pile: KXHEJFDBZLMPNOQRSTUVWY + AG + IC
+Discard: FJNHULX
+Right:   IPDZOWKGSTVARMEQYBC
+Left:    KXHEJFDBZLMPNOQRSTUVWYAGIC
+
+Count cut:
+Top card of discard pile: C
+Putting together pile: EJFDBZLMPNOQRSTUVWYAGIC + KXH
+Discard: CFJNHULX
+Right:   IPDZOWKGSTVARMEQYB
+Left:    EJFDBZLMPNOQRSTUVWYAGICKXH
+
+Mixing in S from the passphrase:
+Dealing cards: EJFDBZLMPNOQRS
+Putting together pile: TUVWYAGICKXH + SQNMZDJ + ROPLBFE
+Discard: CFJNHULX
+Right:   IPDZOWKGSTVARMEQYB
+Left:    TUVWYAGICKXHSQNMZDJROPLBFE
+
+Count cut:
+Top card of discard pile: B
+Putting together pile: VWYAGICKXHSQNMZDJROPLBFE + TU
+Discard: BCFJNHULX
+Right:   IPDZOWKGSTVARMEQY
+Left:    VWYAGICKXHSQNMZDJROPLBFETU
+
+Mixing in E from the passphrase:
+Dealing cards: VWYAGICKXHSQNMZDJROPLBFE
+Putting together pile: TU + EBPRDMQHKIAW + FLOJZNSXCGYV
+Discard: BCFJNHULX
+Right:   IPDZOWKGSTVARMEQY
+Left:    TUEBPRDMQHKIAWFLOJZNSXCGYV
+</pre>
+
+    
+<h2>Mixing</h2>
+
+<pre>
+Discarding rest of right pile and swapping:
+Discard: 
+Right:   TUEBPRDMQHKIAWFLOJZNSXCGYV
+Left:    BCFJNHULXIPDZOWKGSTVARMEQY
+
+Mixing left pile using right:
+Top card of discard pile: V
+Dealing cards: BCFJNHULXIPDZOWKGSTV
+Putting together pile: ARMEQY + VSKODILHJC + TGWZPXUNFB
+Discard: V
+Right:   TUEBPRDMQHKIAWFLOJZNSXCGY
+Left:    ARMEQYVSKODILHJCTGWZPXUNFB
+
+Mixing left pile using right:
+Top card of discard pile: Y
+Dealing cards: ARMEQY
+Putting together pile: VSKODILHJCTGWZPXUNFB + YER + QMA
+Discard: YV
+Right:   TUEBPRDMQHKIAWFLOJZNSXCG
+Left:    VSKODILHJCTGWZPXUNFBYERQMA
+
+Mixing left pile using right:
+Top card of discard pile: G
+Dealing cards: VSKODILHJCTG
+Putting together pile: WZPXUNFBYERQMA + GCHIOS + TJLDKV
+Discard: GYV
+Right:   TUEBPRDMQHKIAWFLOJZNSXC
+Left:    WZPXUNFBYERQMAGCHIOSTJLDKV
+
+Mixing left pile using right:
+Top card of discard pile: C
+Dealing cards: WZPXUNFBYERQMAGC
+Putting together pile: HIOSTJLDKV + CAQEBNXZ + GMRYFUPW
+Discard: CGYV
+Right:   TUEBPRDMQHKIAWFLOJZNSX
+Left:    HIOSTJLDKVCAQEBNXZGMRYFUPW
+
+Mixing left pile using right:
+Top card of discard pile: X
+Dealing cards: HIOSTJLDKVCAQEBNX
+Putting together pile: ZGMRYFUPW + XBQCKLTOH + NEAVDJSI
+Discard: XCGYV
+Right:   TUEBPRDMQHKIAWFLOJZNS
+Left:    ZGMRYFUPWXBQCKLTOHNEAVDJSI
+
+Mixing left pile using right:
+Top card of discard pile: S
+Dealing cards: ZGMRYFUPWXBQCKLTOHNEAVDJS
+Putting together pile: I + SDANOLCBWUYMZ + JVEHTKQXPFRG
+Discard: SXCGYV
+Right:   TUEBPRDMQHKIAWFLOJZN
+Left:    ISDANOLCBWUYMZJVEHTKQXPFRG
+
+Mixing left pile using right:
+Top card of discard pile: N
+Dealing cards: ISDAN
+Putting together pile: OLCBWUYMZJVEHTKQXPFRG + NDI + AS
+Discard: NSXCGYV
+Right:   TUEBPRDMQHKIAWFLOJZ
+Left:    OLCBWUYMZJVEHTKQXPFRGNDIAS
+
+Mixing left pile using right:
+Top card of discard pile: Z
+Dealing cards: OLCBWUYMZ
+Putting together pile: JVEHTKQXPFRGNDIAS + ZYWCO + MUBL
+Discard: ZNSXCGYV
+Right:   TUEBPRDMQHKIAWFLOJ
+Left:    JVEHTKQXPFRGNDIASZYWCOMUBL
+
+Mixing left pile using right:
+Top card of discard pile: J
+Dealing cards: J
+Putting together pile: VEHTKQXPFRGNDIASZYWCOMUBL + J + 
+Discard: JZNSXCGYV
+Right:   TUEBPRDMQHKIAWFLO
+Left:    VEHTKQXPFRGNDIASZYWCOMUBLJ
+
+Mixing left pile using right:
+Top card of discard pile: O
+Dealing cards: VEHTKQXPFRGNDIASZYWCO
+Putting together pile: MUBLJ + OWZADGFXKHV + CYSINRPQTE
+Discard: OJZNSXCGYV
+Right:   TUEBPRDMQHKIAWFL
+Left:    MUBLJOWZADGFXKHVCYSINRPQTE
+
+Mixing left pile using right:
+Top card of discard pile: L
+Dealing cards: MUBL
+Putting together pile: JOWZADGFXKHVCYSINRPQTE + LU + BM
+Discard: LOJZNSXCGYV
+Right:   TUEBPRDMQHKIAWF
+Left:    JOWZADGFXKHVCYSINRPQTELUBM
+
+Mixing left pile using right:
+Top card of discard pile: F
+Dealing cards: JOWZADGF
+Putting together pile: XKHVCYSINRPQTELUBM + FDZO + GAWJ
+Discard: FLOJZNSXCGYV
+Right:   TUEBPRDMQHKIAW
+Left:    XKHVCYSINRPQTELUBMFDZOGAWJ
+
+Mixing left pile using right:
+Top card of discard pile: W
+Dealing cards: XKHVCYSINRPQTELUBMFDZOGAW
+Putting together pile: J + WGZFBLTPNSCHX + AODMUEQRIYVK
+Discard: WFLOJZNSXCGYV
+Right:   TUEBPRDMQHKIA
+Left:    JWGZFBLTPNSCHXAODMUEQRIYVK
+
+Mixing left pile using right:
+Top card of discard pile: A
+Dealing cards: JWGZFBLTPNSCHXA
+Putting together pile: ODMUEQRIYVK + AHSPLFGJ + XCNTBZW
+Discard: AWFLOJZNSXCGYV
+Right:   TUEBPRDMQHKI
+Left:    ODMUEQRIYVKAHSPLFGJXCNTBZW
+
+Mixing left pile using right:
+Top card of discard pile: I
+Dealing cards: ODMUEQRI
+Putting together pile: YVKAHSPLFGJXCNTBZW + IQUD + REMO
+Discard: IAWFLOJZNSXCGYV
+Right:   TUEBPRDMQHK
+Left:    YVKAHSPLFGJXCNTBZWIQUDREMO
+
+Mixing left pile using right:
+Top card of discard pile: K
+Dealing cards: YVK
+Putting together pile: AHSPLFGJXCNTBZWIQUDREMO + KY + V
+Discard: KIAWFLOJZNSXCGYV
+Right:   TUEBPRDMQH
+Left:    AHSPLFGJXCNTBZWIQUDREMOKYV
+
+Mixing left pile using right:
+Top card of discard pile: H
+Dealing cards: AH
+Putting together pile: SPLFGJXCNTBZWIQUDREMOKYV + H + A
+Discard: HKIAWFLOJZNSXCGYV
+Right:   TUEBPRDMQ
+Left:    SPLFGJXCNTBZWIQUDREMOKYVHA
+
+Mixing left pile using right:
+Top card of discard pile: Q
+Dealing cards: SPLFGJXCNTBZWIQ
+Putting together pile: UDREMOKYVHA + QWBNXGLS + IZTCJFP
+Discard: QHKIAWFLOJZNSXCGYV
+Right:   TUEBPRDM
+Left:    UDREMOKYVHAQWBNXGLSIZTCJFP
+
+Mixing left pile using right:
+Top card of discard pile: M
+Dealing cards: UDREM
+Putting together pile: OKYVHAQWBNXGLSIZTCJFP + MRU + ED
+Discard: MQHKIAWFLOJZNSXCGYV
+Right:   TUEBPRD
+Left:    OKYVHAQWBNXGLSIZTCJFPMRUED
+
+Mixing left pile using right:
+Top card of discard pile: D
+Dealing cards: OKYVHAQWBNXGLSIZTCJFPMRUED
+Putting together pile:  + DUMFCZSGNWAVK + ERPJTILXBQHYO
+Discard: DMQHKIAWFLOJZNSXCGYV
+Right:   TUEBPR
+Left:    DUMFCZSGNWAVKERPJTILXBQHYO
+
+Mixing left pile using right:
+Top card of discard pile: R
+Dealing cards: DUMFCZSGNWAVKER
+Putting together pile: PJTILXBQHYO + RKANSCMD + EVWGZFU
+Discard: RDMQHKIAWFLOJZNSXCGYV
+Right:   TUEBP
+Left:    PJTILXBQHYORKANSCMDEVWGZFU
+
+Mixing left pile using right:
+Top card of discard pile: P
+Dealing cards: P
+Putting together pile: JTILXBQHYORKANSCMDEVWGZFU + P + 
+Discard: PRDMQHKIAWFLOJZNSXCGYV
+Right:   TUEB
+Left:    JTILXBQHYORKANSCMDEVWGZFUP
+
+Mixing left pile using right:
+Top card of discard pile: B
+Dealing cards: JTILXB
+Putting together pile: QHYORKANSCMDEVWGZFUP + BLT + XIJ
+Discard: BPRDMQHKIAWFLOJZNSXCGYV
+Right:   TUE
+Left:    QHYORKANSCMDEVWGZFUPBLTXIJ
+
+Mixing left pile using right:
+Top card of discard pile: E
+Dealing cards: QHYORKANSCMDE
+Putting together pile: VWGZFUPBLTXIJ + EMSARYQ + DCNKOH
+Discard: EBPRDMQHKIAWFLOJZNSXCGYV
+Right:   TU
+Left:    VWGZFUPBLTXIJEMSARYQDCNKOH
+
+Mixing left pile using right:
+Top card of discard pile: U
+Dealing cards: VWGZFU
+Putting together pile: PBLTXIJEMSARYQDCNKOH + UZW + FGV
+Discard: UEBPRDMQHKIAWFLOJZNSXCGYV
+Right:   T
+Left:    PBLTXIJEMSARYQDCNKOHUZWFGV
+
+Mixing left pile using right:
+Top card of discard pile: T
+Dealing cards: PBLT
+Putting together pile: XIJEMSARYQDCNKOHUZWFGV + TB + LP
+Discard: TUEBPRDMQHKIAWFLOJZNSXCGYV
+Right:   
+Left:    XIJEMSARYQDCNKOHUZWFGVTBLP
+
+Swapping piles:
+Discard: 
+Right:   XIJEMSARYQDCNKOHUZWFGVTBLP
+Left:    TUEBPRDMQHKIAWFLOJZNSXCGYV
+</pre>
+
+    
+<h2>Encryption</h2>
+
+<pre>
+Count cut:
+Top card of discard pile: P
+Putting together pile: OJZNSXCGYV + TUEBPRDMQHKIAWFL
+Discard: P
+Right:   XIJEMSARYQDCNKOHUZWFGVTBL
+Left:    OJZNSXCGYVTUEBPRDMQHKIAWFL
+
+Encrypting letter: P
+Dealing cards: OJZNSXCGYVTUEBP
+Putting together pile: RDMQHKIAWFL + PETYCSZO + BUVGXNJ
+Ciphertext letter: O
+Discard: P
+Right:   XIJEMSARYQDCNKOHUZWFGVTBL
+Left:    RDMQHKIAWFLPETYCSZOBUVGXNJ
+
+Count cut:
+Top card of discard pile: L
+Putting together pile: ETYCSZOBUVGXNJ + RDMQHKIAWFLP
+Discard: LP
+Right:   XIJEMSARYQDCNKOHUZWFGVTB
+Left:    ETYCSZOBUVGXNJRDMQHKIAWFLP
+
+Encrypting letter: L
+Dealing cards: ETYCSZOBUVGXNJRDMQHKIAWFL
+Putting together pile: P + LWIHMRNGUOSYE + FAKQDJXVBZCT
+Ciphertext letter: Y
+Discard: LP
+Right:   XIJEMSARYQDCNKOHUZWFGVTB
+Left:    PLWIHMRNGUOSYEFAKQDJXVBZCT
+
+Count cut:
+Top card of discard pile: B
+Putting together pile: WIHMRNGUOSYEFAKQDJXVBZCT + PL
+Discard: BLP
+Right:   XIJEMSARYQDCNKOHUZWFGVT
+Left:    WIHMRNGUOSYEFAKQDJXVBZCTPL
+
+Encrypting letter: A
+Dealing cards: WIHMRNGUOSYEFA
+Putting together pile: KQDJXVBZCTPL + AESUNMI + FYOGRHW
+Ciphertext letter: N
+Discard: BLP
+Right:   XIJEMSARYQDCNKOHUZWFGVT
+Left:    KQDJXVBZCTPLAESUNMIFYOGRHW
+
+Count cut:
+Top card of discard pile: T
+Putting together pile: YOGRHW + KQDJXVBZCTPLAESUNMIF
+Discard: TBLP
+Right:   XIJEMSARYQDCNKOHUZWFGV
+Left:    YOGRHWKQDJXVBZCTPLAESUNMIF
+
+Encrypting letter: I
+Dealing cards: YOGRHWKQDJXVBZCTPLAESUNMI
+Putting together pile: F + INSAPCBXDKHGY + MUELTZVJQWRO
+Ciphertext letter: Y
+Discard: TBLP
+Right:   XIJEMSARYQDCNKOHUZWFGV
+Left:    FINSAPCBXDKHGYMUELTZVJQWRO
+
+Count cut:
+Top card of discard pile: V
+Putting together pile: QWRO + FINSAPCBXDKHGYMUELTZVJ
+Discard: VTBLP
+Right:   XIJEMSARYQDCNKOHUZWFG
+Left:    QWROFINSAPCBXDKHGYMUELTZVJ
+
+Encrypting letter: N
+Dealing cards: QWROFIN
+Putting together pile: SAPCBXDKHGYMUELTZVJ + NFRQ + IOW
+Ciphertext letter: G
+Discard: VTBLP
+Right:   XIJEMSARYQDCNKOHUZWFG
+Left:    SAPCBXDKHGYMUELTZVJNFRQIOW
+
+Count cut:
+Top card of discard pile: G
+Putting together pile: KHGYMUELTZVJNFRQIOW + SAPCBXD
+Discard: GVTBLP
+Right:   XIJEMSARYQDCNKOHUZWF
+Left:    KHGYMUELTZVJNFRQIOWSAPCBXD
+
+Encrypting letter: T
+Dealing cards: KHGYMUELT
+Putting together pile: ZVJNFRQIOWSAPCBXD + TEMGK + LUYH
+Ciphertext letter: I
+Discard: GVTBLP
+Right:   XIJEMSARYQDCNKOHUZWF
+Left:    ZVJNFRQIOWSAPCBXDTEMGKLUYH
+
+Count cut:
+Top card of discard pile: F
+Putting together pile: QIOWSAPCBXDTEMGKLUYH + ZVJNFR
+Discard: FGVTBLP
+Right:   XIJEMSARYQDCNKOHUZW
+Left:    QIOWSAPCBXDTEMGKLUYHZVJNFR
+
+Encrypting letter: E
+Dealing cards: QIOWSAPCBXDTE
+Putting together pile: MGKLUYHZVJNFR + EDBPSOQ + TXCAWI
+Ciphertext letter: M
+Discard: FGVTBLP
+Right:   XIJEMSARYQDCNKOHUZW
+Left:    MGKLUYHZVJNFREDBPSOQTXCAWI
+
+Count cut:
+Top card of discard pile: W
+Putting together pile: AWI + MGKLUYHZVJNFREDBPSOQTXC
+Discard: WFGVTBLP
+Right:   XIJEMSARYQDCNKOHUZ
+Left:    AWIMGKLUYHZVJNFREDBPSOQTXC
+
+Encrypting letter: X
+Dealing cards: AWIMGKLUYHZVJNFREDBPSOQTX
+Putting together pile: C + XQSBEFJZYLGIA + TOPDRNVHUKMW
+Ciphertext letter: Y
+Discard: WFGVTBLP
+Right:   XIJEMSARYQDCNKOHUZ
+Left:    CXQSBEFJZYLGIATOPDRNVHUKMW
+
+Count cut:
+Top card of discard pile: Z
+Putting together pile:  + CXQSBEFJZYLGIATOPDRNVHUKMW
+Discard: ZWFGVTBLP
+Right:   XIJEMSARYQDCNKOHU
+Left:    CXQSBEFJZYLGIATOPDRNVHUKMW
+
+Encrypting letter: T
+Dealing cards: CXQSBEFJZYLGIAT
+Putting together pile: OPDRNVHUKMW + TILZFBQC + AGYJESX
+Ciphertext letter: O
+Discard: ZWFGVTBLP
+Right:   XIJEMSARYQDCNKOHU
+Left:    OPDRNVHUKMWTILZFBQCAGYJESX
+
+Count cut:
+Top card of discard pile: U
+Putting together pile: YJESX + OPDRNVHUKMWTILZFBQCAG
+Discard: UZWFGVTBLP
+Right:   XIJEMSARYQDCNKOH
+Left:    YJESXOPDRNVHUKMWTILZFBQCAG
+
+Encrypting letter: X
+Dealing cards: YJESX
+Putting together pile: OPDRNVHUKMWTILZFBQCAG + XEY + SJ
+Ciphertext letter: E
+Discard: UZWFGVTBLP
+Right:   XIJEMSARYQDCNKOH
+Left:    OPDRNVHUKMWTILZFBQCAGXEYSJ
+
+Ciphertext:  (IV this side) -v-
+IPDZO WKGST VARME QYBCF JNHUL OYNYG IMYOE
+</pre>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      <a href="./">Mirdek</a> &gt;
+      Example</p>
+</body>
+
+</html>

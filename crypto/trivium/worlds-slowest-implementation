@@ -1,0 +1,35 @@
+#!/usr/bin/python
+
+# World's slowest Trivium implementation, Paul Crowley, 2006
+
+allbytes = dict([("%02X" % i, i) for i in range(256)])
+
+def hex_to_bytes(s):
+    return [allbytes[s[i:i+2].upper()] for i in range(0,len(s),2)]
+
+def hex_to_bits(s):
+    return [(b >> i) & 1 for b in hex_to_bytes(s)
+            for i in range(8)]
+
+def bits_to_hex(b):
+    return "".join(["%02X" % sum([b[i + j] << j for j in range(8)])
+                    for i in range(0, len(b), 8)])
+
+key = hex_to_bits("0F62B5085BAE0154A7FA")
+iv = hex_to_bits("288FF65DC42B92F9")
+
+a = [0] * (93-len(key)) + key
+b = [0] * (84-len(iv)) + iv
+c = [1,1,1] + [0] * (111 - 3)
+
+result = []
+
+for k in range(1152 + 128):
+    result.append(c[-66] ^ c[-111] ^ a[-66] ^ a[-93] ^ b[-69] ^ b[-84])
+    na = c[-66] ^ c[-111] ^ (c[-110] & c[-109]) ^ a[-69]
+    nb = a[-66] ^ a[-93] ^ (a[-92] & a[-91]) ^ b[-78]
+    nc = b[-69] ^ b[-84] ^ (b[-83] & b[-82]) ^ c[-87]
+    a.append(na); b.append(nb); c.append(nc)
+    
+del result[:1152]
+print bits_to_hex(result)

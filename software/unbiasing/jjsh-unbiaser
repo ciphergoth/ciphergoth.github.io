@@ -1,0 +1,106 @@
+#!/usr/bin/python
+# Juels, Jakobsson, Shriver, and Hillyer integer unbiaser version 1.0
+
+# Convert a biased uncorrelated stream of integers (eg, click
+# intervals from a Geiger counter) into an unbiased uncorrelated
+# bitstream.  See
+   
+# http://www.ciphergoth.org/software/unbiasing
+
+import random
+
+def factorial(n):
+    res = 1L
+    for i in range(1, n):
+        res = res * i
+    return res
+
+def q_one(seq):
+    freq_hash = {}
+    for x in seq:
+        if freq_hash.has_key(x):
+            freq_hash[x] = freq_hash[x] +1
+        else:
+            freq_hash[x] = 1
+
+    rank_map = freq_hash.keys()
+    rank_map.sort()
+    ranks = len(rank_map)
+    fr = [freq_hash[x] for x in rank_map]
+    key_rank = {}
+    for (key, rank) in map(None, rank_map, range(0, ranks)):
+        key_rank[key] = rank
+    rseq = [key_rank[x] for x in seq]
+
+    little_n = len(rseq)
+    perms = factorial(little_n)
+    for f in fr:
+        perms = perms / factorial(f)
+
+    big_l = 0
+    big_f = perms
+    for (x,i) in map(None, rseq, range(0, little_n)):
+        little_l = 0
+        for r in range(0, x):
+            little_l = little_l + fr[r]
+        little_v = fr[x]
+        remaining = little_n - i
+
+        big_l = big_l + little_l * big_f / remaining
+        big_f = little_v * big_f / remaining
+
+        fr[x] = fr[x] -1
+
+    return (big_l, perms)
+
+def q_two(r,s):
+    res = ""
+    while (s % 2 == 0 or r != s-1):
+        s_2 = s/2
+        if r % 2 == 1:
+            res = res + "1"
+        else:
+            res = res + "0"
+        r = r/2
+        s = s_2
+    return res
+
+def extract_juice(seq):
+    (r, s) = q_one(seq)
+    return q_two(r, s)
+
+n = 1
+k = 1024
+for i in range(0, n):
+    # Numbers from HotBits hbhist.gif
+    data = []
+    for j in range(0, k):
+        sample = int(0.5 + random.gauss(1889.35,26.4))
+        #sample = (sample * 1000) % 2011
+        data.append(sample)
+    bits = len(extract_juice(data))
+    print "Bits:", bits
+    print "Efficiency: ", bits * 1.0 / k
+
+# Copyright (C) 2002 Paul Crowley <paul@ciphergoth.org>
+# November 2002
+
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation files
+# (the "Software"), to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify, merge,
+# publish, distribute, sublicense, and/or sell copies of the Software,
+# and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+# BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+# ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.

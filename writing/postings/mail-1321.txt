@@ -1,0 +1,30 @@
+X-From-Line: nobody Sat Mar 13 00:11:27 1999
+To: spki@c2.net
+Subject: An alternative way to do 1-of-N certificates?
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 13 Mar 1999 00:11:26 +0000
+Message-ID: <876786jljl.fsf@hedonism.demon.co.uk>
+X-Mailer: Gnus v5.5/XEmacs 20.4 - "Emerald"
+Lines: 18
+Xref: hedonism.demon.co.uk misc-mail:1321
+X-Gnus-Article-Number: 1321   Sat Mar 13 00:11:27 1999
+
+While I'm asking about some of the things in the SPKI draft, here's
+another possibility: I think there's an alternative secure way to do
+1-of-N certificates that might be more convenient and flexible while
+still retaining security, though I'm not so sure it's as easy to
+reason about.  To delegate a fraction of a priviledge, delegate the
+priviledge to a local name that you control, but don't directly
+certify that name as belonging to any key.  Instead write people
+certificates entitling them to some fraction of that name, and use
+rational arithmetic in the verifier to make sure that all the
+fractions approving an action add up to one.  This I think allows you
+to do all the arbitrarily subtle things that secret sharing schemes
+can do while keeping it to a fairly simple framework.
+
+Thoughts?
+--
+  __
+\/ o\ paul@hedonism.demon.co.uk  http://www.hedonism.demon.co.uk/paul/ \ /
+/\__/ Paul Crowley            Upgrade your legacy NT machines to Linux /~\
+

@@ -1,0 +1,44 @@
+X-From-Line: nobody Wed Feb 17 19:34:26 1999
+Newsgroups: sci.crypt
+Subject: Re: Block ciphers vs Stream Ciphers
+References: <7abaol$mtf$1@fe2.cs.interbusiness.it> <7abu0j$fke$1@quine.mathcs.duq.edu>
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 17 Feb 1999 19:34:25 +0000
+Message-ID: <873e44zuwu.fsf@hedonism.demon.co.uk>
+X-Newsreader: Gnus v5.5/XEmacs 20.4 - "Emerald"
+Lines: 31
+Xref: hedonism.demon.co.uk misc-news:623
+X-Gnus-Article-Number: 623   Wed Feb 17 19:34:26 1999
+
+juola@mathcs.duq.edu (Patrick Juola) writes:
+> In fact, he could change the order by simply changing these bytes
+>         please sell $100,000 worth of IBM
+>                      ^                ^^^
+> w/o even understanding what the original order was, and simply hope
+> to get a meaningful message -- which in the case of stock abbreviations
+> is rather likely
+> 
+> A good block cypher would require him to unbutton the entire message;
+> it's more or less immune to this sort of byte-by-byte attack. 
+
+I don't think relying on the error propogation properties of block
+ciphers for integrity is a good idea.  For example, it might under
+some circumstances serve an attacker to turn 128 bytes of the message
+to unpredictable noise, if the format of the original message had the
+right shape.  It might for example be the case that the amount
+transferred into your account is expressed as a 32-bit word, in which
+case a random value is likely to be higher than the one in the
+message; perhaps the other bytes modified are padding bytes or specify 
+accounting information that can take any value.  It would be a mistake 
+to burden the application designers with making sure their messages
+don't have this property; you're better off using a real MAC.
+
+As far as I can tell block ciphers are used far more often than
+they are appropriate; the CPU-load of block-cipher based stream
+ciphers is quite a bit higher than that of native stream ciphers, and
+the benefits seem to be questionable.
+-- 
+  __
+\/ o\ paul@hedonism.demon.co.uk  http://www.hedonism.demon.co.uk/paul/ \ /
+/\__/ Paul Crowley            Upgrade your legacy NT machines to Linux /~\
+

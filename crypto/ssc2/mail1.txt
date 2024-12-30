@@ -1,0 +1,205 @@
+X-From-Line: sfluhrer@cisco.com Mon Apr 09 05:01:53 2001
+Received: from localhost ([127.0.0.1] ident=root)
+	by saltationism.dnsalias.net with esmtp (Exim 3.12 #1)
+	for paul@cluefactory.org.uk
+	id 14mSsD-0001XZ-00 (Debian 2.1); Mon, 09 Apr 2001 05:01:53 +0100
+Received: from public.antipope.org
+	by localhost with POP3 (fetchmail-5.3.3)
+	for paul@cluefactory.org.uk (multi-drop); Mon, 09 Apr 2001 05:01:53 +0100 (BST)
+Received: (from spms@localhost)
+	by public.antipope.org (8.9.3/8.9.3) id FAA17560
+	for hedonism; Mon, 9 Apr 2001 05:00:49 +0100
+X-Envelope-From: sfluhrer@cisco.com
+X-Envelope-To: <paul@cluefactory.org.uk>
+X-Delivered-To: hedonism
+Received: from sj-msg-core-2.cisco.com (sj-msg-core-2.cisco.com
+          [171.69.43.88]) by antipope.nsl.co.uk (from sfluhrer@cisco.com)
+          with SMTP (spms 1.7.1a 22/10/2000) id
+          eabe5dbd518060b9cb4c56b340784066; Mon, 09 Apr 2001 04:00:44 GMT
+Received: from mira-sjcm-3.cisco.com (mira-sjcm-3.cisco.com [171.69.43.101])
+	by sj-msg-core-2.cisco.com (8.9.3/8.9.1) with ESMTP id VAA23223;
+	Sun, 8 Apr 2001 21:00:25 -0700 (PDT)
+Received: from sfluhrer-hpc (sfluhrer-dsl1.cisco.com [10.19.18.90])
+	by mira-sjcm-3.cisco.com (Mirapoint)
+	with SMTP id ABS00860;
+	Sun, 8 Apr 2001 20:59:59 -0700 (PDT)
+X-Gnus-Mail-Source: file:/var/spool/mail/paul
+Message-Id: <200104090359.ABS00860@mira-sjcm-3.cisco.com>
+X-Sender: sfluhrer@mira-sjcm-3
+X-Mailer: QUALCOMM Windows Eudora Pro Version 4.0.2 
+Date: Sun, 08 Apr 2001 20:49:58 -0700
+To: Scott Fluhrer <sfluhrer@cisco.com>, Paul Crowley <paul@cluefactory.org.uk>,
+        sfluhrer@cisco.com
+From: Scott Fluhrer <sfluhrer@cisco.com>
+Subject: Re: Some SSC2 articles
+Cc: sfluhrer@ix.netcom.com
+In-Reply-To: <200104070217.ABR03164@mira-sjcm-3.cisco.com>
+References: <87d7ap1tbr.fsf@saltationism.subnet.hedonism.cluefactory.or g.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+X-UIDL: ,5&!!#`]!!!a-"!P3b!!
+Lines: 161
+Xref: saltationism.subnet.hedonism.cluefactory.org.uk mail.to-me:5313
+
+At 07:07 PM 4/6/01 , Scott Fluhrer wrote:
+>At 04:50 PM 4/6/01 , Paul Crowley wrote:
+>>digested from my inbox.
+>>
+>>I'll try and find Ian Harvey's attack too.
+>
+>Well, Ian Harvey;s attack is essentially Bleichenbacher's attack, so
+>it's no big deal.  Shazbot, I had hoped the bias was bigger than that.
+>Oh well, I'll see if I can edit these articles into a more comprehensible
+>form this weekend, which you can post.
+
+Ok, I took the listed observations, and edited them down into a reasonable
+form, given below:
+
+
+
+Three potential attacks on SSC2:
+
+
+Attack #1: (uses O(2**50) keystream, O(2**83) time):
+
+Observations (all expirementally derived):
+
+On the right hand side (LFG), if we know the LSBits of the LFG elements,
+then we can predict the bias of bit 16 of the XOR between two adjacent RHS
+outputs.  The size of this bias is 0.5 +- 2**-7.  The actual sign of the
+bias will depend on the contents of the LSBits.  I suspect that this occurs
+because the mux occasionally selects the same element twice.  I also suspect
+(haven't expirementally verified) that a similar (but slightly smaller) bias
+occurs in bit 16 of the XOR of two elements slightly farther away.
+
+On the right hand side, if the know the two LSBits of the LFG elements, then
+half the time we can predict the bias of bit 17 of the XOR between two
+adjacent RHS outputs.  The size of this bias, when it exists, is 0.5 +-
+2**-6.  Whether this bias exists, and the actual sign, depends on the known
+contents of the two LSBits.  Again, I suspect thisoccurs because the mux
+occasionally selects the same element twice, and I suspect that a similar
+(but slightly smaller) bias occurs in bit 17 of the XOR of two elements
+slightly farther away.
+
+I also suspect (verified for up to 5 LSBits, unverified for higher) that
+similar biases occur in other bits.
+
+On the left hand side (LFSR), given 7 consecutive outputs (X0, ..., X6) and
+assuming a random LFSR state, there is a bias such that
+   X0[17] ^ X2[17] ^ X3[16] ^ X6[16]
+has even parity 0.5 - 2**-11.5 of the time (where X0[17] is bit 17 of X0).
+I have not investigated the underlying cause of this.
+
+
+So, the attack goes as follows:
+
+-  Assuming the 2 LSBits of the LFGs.  This is a total of 33 bits, because
+the key scheduling gives us a free one.
+
+-  Using the assumed LFG settings, predict the biases, for each 7-tuple, on
+the RHS output of X0[17]^X2[17]^X3[16]^X6[16].
+
+-  Xor that with the known keystream to form the predicted biases of
+X0[17]^X2[2]^X3[16]^X6[16] of the LHS output.
+
+-  Examing a huge quantity of that to verify if we see the known bias in the
+LHS output.  If so, we have correctly assumed the 2 LSBits of the LFGs.
+
+-  Then, by assuming the next LSBit of the LFG, and using this same
+procedure, we can recover the next bit of the LFG, and continue this until
+we have the full LFG state.  And, once we have that, recovering the LFSR
+state should be easy.
+
+
+Now, the overall bias this uses is 0.5 +- 2**24.5, and there is no predicted
+bias on half the 7-tuples.  So, this should take O(2**50) outputs, and
+O(2**83) time.  Of course, this isn't very interesting, because the known
+attack of waiting for the cycle time of the LFG takes approximately the
+same output of known keystream, and a lot less work.
+
+
+
+Attack #2 (cost not estimated, appears to not be better than known attacks):
+
+This is an attempted refinement of the wait-for-the-LFG-to-wrap attack:
+
+Observations (again, expirementally derived):
+
+If we xor RHS outputs that occur 2^16(2^17-1) apart, then bit 0 of the xor
+is biased toward 0 with probability 0.5 + 2^-5.  (Further observations we
+won't use: bit 16 of the xor is biased toward 0 with probability 0.5 + 2^-6,
+and rather weaker biases occur on other bits, and if we reduce the skip by a
+factor of 2 to 8).
+
+Bit 0 of the LHS has two correlations with the LFSR state with bias 0.5 +
+2^-3:
+    Bit 0 = X3[16] ^ X2[31] ^ X1[0] ^ X0[16] ^ X0[15]
+    Bit 0 = X3[16] ^ X2[31] ^ X1[0] ^ X0[16] ^ X3[15]
+
+Xoring the outputs at a fixed distance of a 3 tap LFSR forms a virtual 3 tap
+LFSR, whose state is a linear transformation of the original LFSR
+
+Skipping 2^c outputs of a 3 tap LFSR forms a virtual 3 tap LFSR, whose state
+is a linear transformation of the original LFSR.
+
+The attack goes as follows:
+
+-  Collect a huge number of SSC2 outputs
+-  Xor the LSBits between pairs of outputs 2^16(2^17-1) apart
+-  Use those xor's to perform a correlation attack on a virtual 3 tap LFSR
+-  Linearly transform that virtual LFSR state back to the original LFSR state
+-  Once we have the LHS state, the RHS state can be rederived as previously
+   discussed.
+
+The correlation attack works on an effective bias of 2^-11, can have 2^33
+outputs without increasing the cost of the attack much, and works on a 3
+tap LFSR.  Is this possible?  I suspect not, but I'm not an expert on
+correlation attacks.
+
+My next trick is to increase the step size to see if that will increase the
+bias.  I suspect the available bias won't increase until we get around
+2^28(2^17-1), where we're getting close to Ian's original attack.
+
+
+
+Attack 3: (uses trivial known keystream, O(2**96) effort)
+
+There is a weakness in the key scheduling of SSC2 -- see section 5 of the
+paper.
+
+  The key setup take the (up to) 128 bit key, loads it into the LFSR and
+then effectively throws it away (it is never refered to again).  So, at this
+point, all the key entropy is in the LFSR.  (And, at first glance, that
+reduces the key to 127 bits, because one of the bits within the LFSR is
+never used, but that doesn't appear to be important).  Then, the key setup
+does, 128 times, steps the LFSR, and then this innocent looking line (line 4
+in the paper):
+
+  S[1] <- S[1] + F(S) mod 2**32
+
+Now, at first glance, this does not appear to be invertable, and in fact, it
+isn't.  What's really interesting is that how far from invertable it can be.
+With one particular poorly chosen fixed S[2], S[3], S[4], only 1.6% of
+possible values of S[1] can be achieved immediately after the step.  This
+means that, if S[1] had 32 bits of entropy coming in, this step loses 6 of
+those bits (!).  And, to make matters worse, this step is run 128 times (!).
+And, this isn't even the worse case.  However, most values of S[2], S[3],
+S[4] do not behave quite so badly.
+
+I've also looked into why it appears to act so bad, and it appears that step
+3 of F (the rotate by 16) is at fault.  I suspect that bits i and i+16 of
+the input S[1] interact distructively.  I've partially verified this by
+finding that, if you replace it by a rotate by 14, it acts much more like a
+random function (losing circa 1 bit of entropy).
+
+>From running Pollard-Rho tests on reduced word sized versions of the SSC2
+key setup, and extrapolating upwards, it appears that circa 2**96 bits of
+entropy are left, assuming 128 bit initial keys.
+
+Hence, this attack comes down to: try random keys.  After O(2**96), you're
+likely to find a key that produces the same keystream as the real key.
+
+
+
+
+

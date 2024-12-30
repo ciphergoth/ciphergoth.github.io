@@ -1,0 +1,34 @@
+README file for Mercy 6.1
+
+  http://www.cluefactory.org.uk/paul/mercy/
+
+Mercy-6 is a 4096-bit block cipher designed for disk block encryption.
+It is free from licensing restrictions, and all the source code here
+is in the public domain; I know of no patent restrictions affecting
+it.
+
+This version of Mercy is that presented at the conference and described in
+the proceedings.  All of this should be thoroughly portable to nearly
+anything, but I've only actually tested it on my x86-based Debian 2.1 Linux
+box using gcc and gcc 2.95.  
+
+The source here is sufficient to time the cipher on your system.  It
+will *not* encrypt any hard disks; it's meant to help assessment and
+discussion of the cipher.  Work needed to make this part of a disk
+encryption system includes not only hacking it into the kernel, but
+also specifying some details such as endianness that the paper does
+not address.  In any case, this revision of the cipher has now been
+shown to have differential characteristics that make it somewhat
+weaker than the key size would suggest, and thus a poor choice as it
+stands.
+
+Scott Fluhrer pointed out two bugs in the implementation of RC4 that
+makes up the key schedule for version 6.0; these have been fixed to
+make this version.
+
+If you're reading this, please mail me and let me know:
+mercy@paul.cluefactory.org.uk
+
+enjoy,
+Paul Crowley
+11 August 2000

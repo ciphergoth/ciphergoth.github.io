@@ -1,0 +1,158 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Problems with Bruce Schneier's "Solitaire"</title>
+    
+    
+<link rel="stylesheet" href="../../ciphergoth.css" type="text/css">
+    
+<link rev="made" href="mailto:webmaster@ciphergoth.org">
+    
+<meta name="author" content="Paul Crowley">
+    
+<meta name="MSSmartTagsPreventParsing" content="TRUE">
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      Solitaire bias</p>
+<h1>Problems with Bruce Schneier's "Solitaire"</h1>
+    
+<p> Readers of Neal Stephenson's "Cryptonomicon" will be
+    familiar with the cipher "<a href="http://www.counterpane.com/solitaire.html">Solitaire</a>"
+    (called "Pontifex" in the book), which was designed by
+    cryptologist Bruce Schneier specifically for the purposes of
+    the book. It is intended to be the first truly secure hand
+    cipher, and requires only a pack of cards for encryption and
+    decryption.</p>
+
+    
+<p> As yet, the technical information about the design of the
+    cipher has not been made available, but I decided to go
+    investigating, and I've now written a fast "C" implementation
+    of the cipher suitable for collecting statistics about the
+    CPRNG at its heart. I have found two interesting facts:</p>
+
+    
+<ul>
+      
+<li>The CPRNG state machine is <em>not</em> reversible,
+      contrary to what the operational notes claim: the initial
+      step in which a joker is moved to the top if it is on the
+      bottom cannot be reversed. This is surprising since
+      non-reversible CPRNGs tend to have shorter periods and can
+      more easily exhibit bias.</li>
+
+      
+<li>And indeed, the output of the CPRNG is very biased. The
+      output of each step of the CPRNG is a number from 0 to 25;
+      you would expect successive outputs to be the same around one
+      time in 26, but my experiments show that the frequency is
+      closer to 1/22.5.</li>
+    
+</ul>
+
+    
+<p> I'm making the source code for the tests I ran available to
+    the public domain. Note that the problems reported in earlier
+    versions are not present in this version; it turns out that it
+    was only my development version that had the problems anyway
+    and the one available for download was fine.</p>
+
+    
+<ul>
+      
+<li>
+<a href="c-sol.c">C implementation of Solitaire</a>,
+      optimised to perform both cuts in a single copying step; on
+      my machine I can generate 10^7 samples in 20 seconds.</li>
+
+      
+<li>
+<a href="perl-sol">Perl implementation of Solitaire</a>
+      modified to do coincidence counting and take the same user
+      interface as the C version, though of course the C version is
+      about 250 times faster. This is useful for debugging and
+      verifying the C version.</li>
+
+      
+<li>
+<a href="normal.c">Normal distribution probability
+      calculator</a>, for when your statistical significance gets
+      so high you fall off the end of your normal tables.
+      Unfortunately, the significance of the bias I've detected in
+      Solitaire (passphrase CRYPTONOMICON, 9999999 samples, 444745
+      coincidences) falls off the end of what this program can
+      calculate, at 98.87 standard deviations from the mean...</li>
+    
+</ul>
+
+    
+<p> I believe I now know the main reasons why this bias arises:
+    when the value of the top card is the same in two successive
+    rounds, an event you would expect to occur with probability
+    just under 2%, the probability that the output letter is also
+    the same is very high, around 34%. This is I assume because
+    when this happens it's likely that many other cards are also in
+    the same positions across the rounds. This isn't the sole
+    source of the bias but it's by far the largest component. Below
+    is the output from my latest version of c-sol, instrumented to
+    measure the correlations between "coincidences" (two successive
+    outputs being the same) and "top matches" (the value of the top
+    card being the same on two successive rounds); everything it
+    measures shows some bias, so there's more to be found than what
+    I've discovered so far.</p>
+
+<pre>
+$./c-sol BIASED 26000001
+  24509422     334473
+    983536     172569
+Top matches overall:
+Sample: 507042 / 26000000
+Measured p = 0.0192044 +0.000297226 = 0.0195016 (+1.5477 %)
++11.0429 SDs from mean
+Coincidences overall:
+Sample: 1156105 / 26000000
+Measured p = 0.0384615 +0.00600404 = 0.0444656 (+15.6105 %)
++159.196 SDs from mean
+Coincidences where top matches:
+Sample: 172569 / 507042
+Measured p = 0.0384615 +0.301883 = 0.340345 (+784.896 %)
++1117.8 SDs from mean
+Coincidences where top doesn't match:
+Sample: 983536 / 25492958
+Measured p = 0.0384615 +0.000119155 = 0.0385807 (+0.309803 %)
++3.12843 SDs from mean
+</pre>
+
+    
+<p> 
+<strong>Update 2001 August 13:</strong> Frans Lategan made
+    <a href="lategan-1.txt">an interesting observation</a> on the
+    movement of the jokers in Solitaire, which I hadn't spotted
+    until now.</p>
+
+    
+<p> I'm interested in designing a secure hand cipher; <a href="../mirdek/">my first attempt, Mirdek</a> turns out
+    to be very insecure, but I return to the problem from time to
+    time.</p>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      Solitaire bias</p>
+</body>
+
+</html>

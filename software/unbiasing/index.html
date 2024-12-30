@@ -1,0 +1,213 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Random data unbiasing</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Software</a> &gt;
+      Unbiasing</p>
+<h1>Random data unbiasing</h1>
+    
+<p>This algorithm converts integers representing the duration of
+    successive clicks from a Geiger counter into unbiased,
+    uncorrelated random bits.  <a href="../../crypto/unbiasing">Detailed description</a>.</p>
+
+    
+<dl>
+      
+<dt>
+<a href="geiger-unbiaser-python">geiger-unbiaser-python</a>
+</dt>
+      
+      
+<dd>A simple implementation of the algorithm in Python.</dd>
+
+      
+<dt>
+<a href="geiger-unbiaser.c">geiger-unbiaser.c</a>
+</dt>
+
+      
+<dd>a C implementation of the same algorithm, rather more
+	  complex but much faster.</dd>
+
+      
+<dt>
+<a href="jjsh-unbiaser">jjsh-unbiaser</a>
+</dt>
+
+      
+<dd>A Python implementation of an alternative strategy for the
+      same job, due to Juels, Jakobsson, Shriver, and Hillyer.</dd>
+
+      
+<dt>
+<a href="jjsh.c">jjsh.c</a>
+</dt>
+
+      
+<dd>An optimised C implementation of that strategy, based on <a href="http://www.swox.com/gmp/">GNU MP</a>.</dd>
+    
+</dl>
+
+    
+<p>A simpler problem is that of converting a stream of independent
+    coin flips with a fixed but unknown bias to a stream of
+    independent unbiased random bits.  An asymptotically optimal
+    strategy for this is the Advanced Multi-Level Strategy (AMLS),
+    first proposed by Yuval Peres.  AMLS is used as a component of the
+    algorithm above.  Here are some implementations of that
+    strategy:</p>
+    
+    
+<dl>
+      
+<dt>
+<a href="simple-amls">simple-amls</a>
+</dt>
+      
+      
+<dd>in Python, but try reading it even if you don't speak
+      Python.  It's a very straightforward implementation of the
+      strategy, with a simple test rig.</dd>
+
+      
+<dt>
+<a href="amls.c">amls.c</a>
+</dt>
+
+      
+<dd>a C implementation of the same strategy.  This uses a rather
+      cunning technique due to corners@sbcglobal.net which overwrites
+      the input bits array rather than using auxiliary storage to
+      generate the output bits recursively; Peres informs me he
+      presented this same technique in the very first lecture
+      describing the AMLS.  Version 0.5.</dd>
+
+      
+<dt>
+<a href="AMLS.cpp">AMLS.cpp</a>
+</dt>
+
+      
+<dd>corners' original version of the above code, in C++ (really
+      C). "You can do anything you want with it.  It comes with a
+      "garbage man's guarantee".  Satisfaction guaranteed, or double
+      your garbage back.  (smile)"</dd>
+
+      
+<dt>
+<a href="amls-unbiasing">amls-unbiasing</a>
+</dt>
+      
+      
+<dd>in Python.  A more complex version that produces bits
+	asynchronously; you push input bits into it and it pushes
+	output bits upstream.  Extremely space inefficient.</dd>
+
+      
+<dt>
+<a href="amls-extract.c">amls-extract.c</a>
+</dt>
+
+      
+<dd>a similar C implementation; call "<code>amls_accept_bit(1,
+      bit, &amp;output);</code>" every time you get a biased random
+      bit, and it will write as many output bits as it can to the
+      output.  It also uses fixed storage, so it doesn't reach the
+	asymptotically perfect efficiency, but in practice that
+	doesn't really matter.  Version 0.1.</dd>
+
+      
+<dt>
+<a href="amls-2n2n1.txt">amls-2n2n1.txt</a>
+</dt>
+
+      
+<dt>
+<a href="amls-fib.txt">amls-fib.txt</a>
+</dt>
+
+      
+<dd>Two implementations by Benjamin Goldberg, <a href="mailto:goldbb2@earthlink.net">goldbb2@earthlink.net</a>.</dd>
+
+    
+</dl>
+
+    
+<h2>Papers</h2>
+    
+<dl>
+      
+<dt>
+<a href="http://citeseer.nj.nec.com/juels98how.html">How to
+      Turn Loaded Dice into Fair Coins</a>
+</dt>
+
+      
+<dd> Ari Juels, Markus Jakobsson, Elizabeth Shriver, Bruce
+      K. Hillyer, <em>IEEETIT: IEEE Transactions on Information
+      Theory</em>, 1998.</dd>
+
+      
+<dt>
+<a href="http://www.stat.berkeley.edu/~peres/mine/vn.pdf">Iterating
+      von Neumann's Procedure for Extracting Random Bits [PDF]</a>
+</dt>
+
+      
+<dd>Yuval Peres, <em>The Annals of Statistics</em>, 1992, pp
+      590-597.  The paper which first presented the AMLS.  From <a href="http://www.stat.berkeley.edu/~peres/recent.html">Yuval
+      Peres' research archive</a>.</dd>
+
+      
+<dt>
+<a href="http://www.fas.harvard.edu/~libcs124/CS/coinflip3.pdf">Tossing
+      a Biased Coin [PDF]</a>
+</dt>
+
+      
+<dd>Teaching notes by Michael Mitzenmacher describing the
+      Advanced Multi-Level Strategy - a very good introduction.  Six
+      pages. From <a href="http://www.fas.harvard.edu/~libcs124/">this
+      course</a>.</dd>
+    
+</dl>
+
+    
+<h2>Links</h2>
+    
+<ul>
+      
+<li>
+<a href="http://www.isaurian.com/AMLS.html">Michael Amling's
+	  Java implementation</a> including the cunning "Fibonacci
+	trick" to retain the most useful output streams.</li>
+
+      
+<li>
+<a href="../../crypto/">More cryptology on this site</a>
+</li>
+    
+</ul>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Software</a> &gt;
+      Unbiasing</p>
+</body>
+
+</html>

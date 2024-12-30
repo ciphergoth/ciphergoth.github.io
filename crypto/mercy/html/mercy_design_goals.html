@@ -1,0 +1,142 @@
+<!-- -*- mode: xml -*- -->
+<!--Converted with LaTeX2HTML 99.2beta6 (1.42)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Mercy design goals</title>
+    <meta name="description" content="Mercy design goals"/>
+    <meta name="keywords" content="mercy-paper"/>
+    <meta name="resource-type" content="document"/>
+    <meta name="distribution" content="global"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta name="Generator" content="LaTeX2HTML v99.2beta6"/>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <link rel="STYLESHEET" href="mercy-paper.css"/>
+    <link rel="next" href="description_of_mercy.html"/>
+    <link rel="previous" href="avalanche_and_certif.html"/>
+    <link rel="up" href="./"/>
+    <link rel="next" href="description_of_mercy.html"/>
+    <meta name="MSSmartTagsPreventParsing" content="TRUE"/>
+  </head>
+
+  <body bgcolor="white">
+    <!--Navigation Panel--><a id="tex2html60" name="tex2html60" href="description_of_mercy.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html58" name="tex2html58" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html52" name="tex2html52" href="avalanche_and_certif.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html61" name="tex2html61" href="description_of_mercy.html" shape="rect">Description of Mercy</a>
+    <strong> Up:</strong> <a id="tex2html59" name="tex2html59" href="./" shape="rect">Mercy: a fast large</a> <strong> Previous:</strong>
+    <a id="tex2html53" name="tex2html53" href="avalanche_and_certif.html" shape="rect">Avalanche and certificational
+    weaknesses</a>
+    <br clear="none"/>
+    <br clear="none"/>
+     <!--End of Navigation Panel--></p>
+
+    <h1>
+<a id="SECTION00030000000000000000" name="SECTION00030000000000000000" shape="rect"/>
+<a id="sec:designgoals" name="sec:designgoals" shape="rect"/>
+    <br clear="none"/>
+     Mercy design goals</h1>
+
+    <p>Mercy is a new randomised block cipher accepting a 4096-bit
+    block, designed specifically for the needs of disk sector
+    encryption; it achieves significantly higher performance than
+    any large block cipher built using another cipher as a
+    primitive, or indeed than any block cipher that I know of large
+    or small.</p>
+
+    <p>It accepts a 128-bit randomiser; it is expected that the
+    sector number will be used directly for this purpose, and
+    therefore that most of the randomiser bits will usually be
+    zero. This is also known as a ``diversification parameter'' in
+    the terminology of [<a href="bibliography.html#panama" shape="rect">6</a>],
+    or ``spice'' in that of [<a href="bibliography.html#hpc" shape="rect">19</a>]. This last term avoids the
+    misleading suggestion that this parameter might be random and
+    is convenient for constructions such as ``spice scheduling''
+    and ``spice material'' and is used henceforth.</p>
+
+    <p>Mercy's keyschedule is based on a CPRNG; the sample
+    implementation uses [<a href="bibliography.html#rc4" shape="rect">10</a>].
+    Though [<a href="bibliography.html#rc4" shape="rect">10</a>] takes a
+    variable length key, Mercy does not aspire to better security
+    than a cipher with a fixed 128-bit key size, so it's convenient
+    for the purposes of specifying these goals to assume that the
+    key is always exactly 128 bits.</p>
+
+    <ul>
+      <li>
+<strong>Security</strong>: Any procedure for
+      distinguishing Mercy encryption from a sequence of <img width="32" height="16" align="BOTTOM" border="0" src="img15.png" alt="$ 2^{128} $"/> independent random
+      permutations (for the <img width="32" height="16" align="BOTTOM" border="0" src="img15.png" alt="$ 2^{128} $"/> possible spices) should show no more
+      bias towards correctness than a key guessing attack with the
+      same work factor. However, we do not claim that ignorance of
+      the spice used would make any attack harder; it's not
+      intended that the spice be hidden from attackers. For this
+      reason, Mercy is not intended to be a K-secure or hermetic
+      cipher in the terminology of [<a href="bibliography.html#rijndael" shape="rect">7</a>].</li>
+
+      <li>
+<strong>Resistance to specific attacks</strong>: Mercy is
+      designed to be resistant in particular to linear and
+      differential attacks, as well as to avoid the certificational
+      weakness of Section <a href="avalanche_and_certif.html#sec:collision" shape="rect">2</a>.</li>
+
+      <li>
+<strong>Speed</strong>: Encryption and decryption should
+      be much faster than disk transfer rates, even with fast disks
+      and slow processors. Specifically, they should be faster than
+      20 Mbytes/sec on a relatively modest modern machine such as
+      the author's Cyrix 6x86MX/266 (which has a clock frequency of
+      233 MHz). This translates as under 11.7 cycles/byte, within
+      the range of stream ciphers but well outside even the fastest
+      traditional block cipher rates. The current C implementation
+      of Mercy achieves 9 cycles/byte; it is likely that an
+      assembly implementation would do rather better.</li>
+
+      <li>
+<strong>Memory</strong>: The cipher should refer to as
+      little memory as possible, and certainly less than 4kbytes.
+      In many environments, Mercy's keytables will be stored in
+      unswappable kernel memory; more important however is to
+      minimise the amount of Level 1 cache that will be cleared
+      when the cipher is used. 1536 bytes of storage are used.</li>
+
+      <li>
+<strong>Simplicity</strong>: Mercy is designed to be
+      simple to implement and to analyse.</li>
+
+      <li>
+<strong>Decryption</strong>: Decryption will be much more
+      frequent than encryption and should be favoured where there
+      is a choice.</li>
+    </ul>
+    <hr/>
+    <!--Navigation Panel--><a id="tex2html60" name="tex2html60" href="description_of_mercy.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html58" name="tex2html58" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html52" name="tex2html52" href="avalanche_and_certif.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html61" name="tex2html61" href="description_of_mercy.html" shape="rect">Description of Mercy</a>
+    <strong> Up:</strong> <a id="tex2html59" name="tex2html59" href="./" shape="rect">Mercy: a fast large</a> <strong> Previous:</strong>
+    <a id="tex2html53" name="tex2html53" href="avalanche_and_certif.html" shape="rect">Avalanche and certificational
+    weaknesses</a> <!--End of Navigation Panel--></p>
+
+    <address>
+      mercy@paul.cluefactory.org.uk
+    </address>
+  </body>
+</html>

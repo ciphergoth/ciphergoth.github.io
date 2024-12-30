@@ -1,0 +1,40 @@
+X-From-Line: nobody Fri Jul 20 09:26:03 2001
+Sender: paul@saltationism.subnet.hedonism.cluefactory.org.uk
+To: Frans Lategan <FransL@discoveryhealth.co.za>
+Subject: Re: Solitaire cipher
+References: <65CABABC4749D511BFA0009027B11CA6A8EF29@dhexchange.discoveryhealth.co.za>
+From: Paul Crowley <paul@cluefactory.org.uk>
+Date: 20 Jul 2001 09:26:03 +0100
+In-Reply-To: Frans Lategan's message of "Fri, 20 Jul 2001 07:31:29 +0200"
+Message-ID: <87u2082ehw.fsf@saltationism.subnet.hedonism.cluefactory.org.uk>
+User-Agent: Gnus/5.0803 (Gnus v5.8.3) XEmacs/21.1 (Capitol Reef)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Lines: 23
+Xref: saltationism.subnet.hedonism.cluefactory.org.uk mail.2001-07:135
+X-Gnus-Article-Number: 135   Fri Jul 20 09:26:03 2001
+
+Frans Lategan <FransL@discoveryhealth.co.za> writes:
+> I just finished Cryptonomicon last night, and as I played around with
+> Solitaire, I also felt that the outputs were not totally random.  Thanks for
+> an interesting analysis.  Another point I have noted, is that if the joker
+> (53) output is not discarded, each successive round increases the distance
+> between the jokers by exactly one card.
+
+Interesting observation!  However, it needs to be modified slightly.
+The "count cut" can come between the two jokers, meaning that the
+position of the two jokers is swapped; if it was x before, it will be
+54-x afterwards.  To get around this, we can define distance to mean
+the minimum distance going either in the middle of the pack or "around
+the outside"; in other words, we measure it as min(x, 54-x).  This
+measure of distance is unchanged by the count cut, and will change by
+1 (either up or down) with very high probability each round.
+
+This is the first time I've heard this fascinating observation.  When
+I get time, I'll add this to my Solitaire page and credit you.  Thanks!
+-- 
+  __  Paul Crowley
+\/ o\ sig@paul.cluefactory.org.uk
+/\__/ http://www.cluefactory.org.uk/paul/
+"Conservation of angular momentum makes the world go around" - John Clark
+

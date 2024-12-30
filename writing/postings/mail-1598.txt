@@ -1,0 +1,67 @@
+X-From-Line: nobody Fri Jul 23 10:04:10 1999
+To: spki@c2.net
+Subject: SPKI applications of secure timestamps?
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 23 Jul 1999 10:04:08 +0100
+Message-ID: <87lnc7zqif.fsf@hedonism.demon.co.uk>
+X-Mailer: Gnus v5.5/XEmacs 20.4 - "Emerald"
+Lines: 55
+Xref: hedonism.demon.co.uk misc-mail:1598
+X-Gnus-Article-Number: 1598   Fri Jul 23 10:04:10 1999
+
+I don't know if this is either (a) original, or (b) wrong, but it
+occurs to me that there are circumstances where it would be useful to
+have the validity of a digital certificate depend on the existence of
+a secure timestamp for part of it.  I can then arrange for my machine
+to act on a request if the request was issued while the issuer still
+had permission to do so, even if I don't receive it until after that
+permission has expired.  This is particularly useful with acl-edit
+requests.
+
+Supposing, for example, I wish to grant some permission to The SPKI
+Secret Cabal. There are five people in the Cabal, but it can be a
+different five each calendar year. Near the end of the year a new
+group of five is chosen by consensus; four out of five of the existing
+cabal must agree to it.  If a new cabal cannot be agreed upon the
+cabal dissolves.
+
+We can partially model this by granting an "acl-edit" permission to
+4-of-5 of the existing cabal so that, come new year, they can update
+my ACL with their decision on the new cabal.  However, this leaves the
+old cabal "in power" on my machine until it receives the acl-edit
+certificate for the keys of the new cabal.  While this is so, they can
+even retroactively change their mind on who they should have selected
+and issue a new acl-edit certificate naming a different cabal. Which
+cabal my machine respects then depends on which acl-edit it gets
+first.  We could limit the acl-edit entry with a not-after condition,
+but this only makes the problem worse: if I don't get the selection
+certificate before the end of the year in this case, not only are the
+old cabal in power for ever on my machine but not even they can ever
+change it.
+
+Instead, we require that the acl-edit request carry a timestamp
+proving that it originated while the old cabal was still in power. The
+new cabal can then present this certificate as proof of their
+legitimacy at any time during the year; if I haven't updated my ACL
+since the original cabal formed N years ago, they can present a chain
+of N certificates.  Yet none of their predecessors can now rewrite the
+history of who they elected.
+
+This does not prevent the old cabal from issuing a second certificate
+for a different cabal between the first selection and the end of the
+year; however AFAIK a service to enforce this-was-issued-once with
+distributed trust is not a solved problem in the way that timestamping
+is, unless perhaps there's a banking protocol that could do it.  
+
+Should a future revision of SPKI support this kind of thing?
+
+I'd love to hear of any pointers to research on what can be done in
+the way of cryptographically authenticated constitutions for digital
+organisations.  If this isn't the best place to discuss it, please let
+me know where I should be looking...  Note that the example is
+fictional as of course there is no cabal.
+-- 
+  __
+\/ o\ paul@hedonism.demon.co.uk     Got a Linux strategy? \ /
+/\__/ Paul Crowley  http://www.hedonism.demon.co.uk/paul/ /~\
+

@@ -1,0 +1,85 @@
+<!-- -*- mode: xml -*- -->
+<!--Converted with LaTeX2HTML 99.2beta6 (1.42)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Conclusions</title>
+    <meta name="description" content="Conclusions"/>
+    <meta name="keywords" content="mercy-paper"/>
+    <meta name="resource-type" content="document"/>
+    <meta name="distribution" content="global"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta name="Generator" content="LaTeX2HTML v99.2beta6"/>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <link rel="STYLESHEET" href="mercy-paper.css"/>
+    <link rel="next" href="acknowledgements.html"/>
+    <link rel="previous" href="design_of_mercy.html"/>
+    <link rel="up" href="./"/>
+    <link rel="next" href="acknowledgements.html"/>
+    <meta name="MSSmartTagsPreventParsing" content="TRUE"/>
+  </head>
+
+  <body bgcolor="white">
+    <!--Navigation Panel--><a id="tex2html104" name="tex2html104" href="acknowledgements.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html102" name="tex2html102" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html96" name="tex2html96" href="design_of_mercy.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html105" name="tex2html105" href="acknowledgements.html" shape="rect">Acknowledgements</a> <strong>
+    Up:</strong> <a id="tex2html103" name="tex2html103" href="./" shape="rect">
+    Mercy: a fast large</a> <strong> Previous:</strong> <a id="tex2html97" name="tex2html97" href="design_of_mercy.html" shape="rect">
+    Design of Mercy</a>
+    <br clear="none"/>
+    <br clear="none"/>
+     <!--End of Navigation Panel--></p>
+
+    <h1>
+<a id="SECTION00060000000000000000" name="SECTION00060000000000000000" shape="rect"/>
+<a id="sec:conclusions" name="sec:conclusions" shape="rect"/>
+    <br clear="none"/>
+     Conclusions</h1>
+
+    <p>Large blocks are useful in any application where random
+    access to data is desirable, of which sector encryption is a
+    prime example. Mercy is intended to demonstrate the possibility
+    of building an efficient block cipher for large blocks. Mercy's
+    design was inspired by two beliefs:</p>
+
+    <ul>
+      <li>Large block sizes can lend useful advantages in security
+      and speed</li>
+
+      <li>Avalanche across large blocks need not be perfect before
+      a cryptanalyst with limited computing resources cannot
+      distinguish it from perfect, as explained in Section <a href="design_of_mercy.html#sec:avalanche" shape="rect">5.6</a>.</li>
+    </ul>
+
+    <p>However, the primary motivation for the design of Mercy is
+    not that the cipher be directly used for this application; it
+    is to inspire further work where it is badly needed. Disk
+    encryption suffers none of the barriers to adoption from
+    interoperability suffered by (for example) email encryption.
+    But it is very rarely used, and the main barrier to adoption
+    among security conscious users is the high performance
+    penalties it currently exacts. I hope that Mercy demonstrates
+    that fast, secure large block ciphers are possible, and
+    inspires better cryptographers to propose better designs.</p>
+
+    <p>
+<br clear="none"/>
+    </p>
+    <hr/>
+
+    <address>
+      mercy@paul.cluefactory.org.uk
+    </address>
+  </body>
+</html>

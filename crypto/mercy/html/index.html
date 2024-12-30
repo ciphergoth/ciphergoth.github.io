@@ -1,0 +1,194 @@
+<!-- -*- mode: xml -*- -->
+<!--Converted with LaTeX2HTML 99.2beta6 (1.42)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Mercy: a fast large block cipher for disk sector
+    encryption</title>
+    <meta name="description" content="Mercy: a fast large block cipher for disk sector encryption"/>
+    <meta name="keywords" content="mercy-paper"/>
+    <meta name="resource-type" content="document"/>
+    <meta name="distribution" content="global"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta name="Generator" content="LaTeX2HTML v99.2beta6"/>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <link rel="STYLESHEET" href="mercy-paper.css"/>
+    <link rel="next" href="introduction.html"/>
+    <meta name="MSSmartTagsPreventParsing" content="TRUE"/>
+  </head>
+
+  <body bgcolor="white">
+    <!--Navigation Panel--><a id="tex2html8" name="tex2html8" href="introduction.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up_g.png"/> <img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev_g.png"/>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html9" name="tex2html9" href="introduction.html" shape="rect">Introduction</a>
+    <br clear="none"/>
+    <br clear="none"/>
+     <!--End of Navigation Panel--></p>
+
+    <h1 align="CENTER">Mercy: a fast large block cipher for disk
+    sector encryption</h1>
+
+    <p align="CENTER">
+<strong>Paul Crowley
+    <br clear="none"/>
+    </strong> mercy@paul.cluefactory.org.uk</p>
+
+    <br clear="none"/>
+
+    <p align="CENTER">
+<em>Date:</em> April 2000</p>
+
+    <h3>Abstract:</h3>
+
+    <div>
+      We discuss the special requirements imposed on the underlying
+      cipher of systems which encrypt each sector of a disk
+      partition independently, and demonstrate a certificational
+      weakness in some existing block ciphers including Bellare and
+      Rogaway's 1999 proposal, proposing a new quantitative measure
+      of avalanche. To address these needs, we present Mercy, a new
+      block cipher accepting large (4096-bit) blocks, which uses a
+      key-dependent state machine to build a bijective F function
+      for a Feistel cipher. Mercy achieves 9 cycles/byte on a
+      Pentium compatible processor.
+      <br clear="none"/>
+       <strong>Key words</strong>: disk sector, large block, state
+      machine, avalanche, Feistel cipher.
+      <br clear="none"/>
+       Mercy home page: <strong>
+<a id="tex2html1" name="tex2html1" href="http://www.cluefactory.org.uk/paul/mercy/" shape="rect">
+      http://www.cluefactory.org.uk/paul/mercy/</a>
+</strong>
+    </div>
+
+    <p>
+<br clear="none"/>
+    </p>
+    <hr/>
+    <!--Table of Child-Links--><a id="CHILD_LINKS" name="CHILD_LINKS" shape="rect"/>
+
+    <ul>
+      <li>
+<a id="tex2html10" name="tex2html10" href="introduction.html" shape="rect">Introduction</a>
+</li>
+
+      <li>
+<a id="tex2html11" name="tex2html11" href="avalanche_and_certif.html" shape="rect">Avalanche and
+      certificational weaknesses</a>
+</li>
+
+      <li>
+<a id="tex2html12" name="tex2html12" href="mercy_design_goals.html" shape="rect">Mercy design goals</a>
+</li>
+
+      <li>
+        <a id="tex2html13" name="tex2html13" href="description_of_mercy.html" shape="rect">Description of Mercy</a> 
+
+        <ul>
+          <li>
+<a id="tex2html14" name="tex2html14" href="description_of_mercy.html#SECTION00041000000000000000" shape="rect">
+           T box</a>
+</li>
+
+          <li>
+<a id="tex2html15" name="tex2html15" href="description_of_mercy.html#SECTION00042000000000000000" shape="rect">
+           Operation M</a>
+</li>
+
+          <li>
+<a id="tex2html16" name="tex2html16" href="description_of_mercy.html#SECTION00043000000000000000" shape="rect">
+           Q state machine</a>
+</li>
+
+          <li>
+<a id="tex2html17" name="tex2html17" href="description_of_mercy.html#SECTION00044000000000000000" shape="rect">
+           F function</a>
+</li>
+
+          <li>
+<a id="tex2html18" name="tex2html18" href="description_of_mercy.html#SECTION00045000000000000000" shape="rect">
+           Round structure</a>
+</li>
+
+          <li>
+<a id="tex2html19" name="tex2html19" href="description_of_mercy.html#SECTION00046000000000000000" shape="rect">
+           Key schedule</a>
+</li>
+        </ul>
+      </li>
+
+      <li>
+        <a id="tex2html20" name="tex2html20" href="design_of_mercy.html" shape="rect">Design of Mercy</a> 
+
+        <ul>
+          <li>
+<a id="tex2html21" name="tex2html21" href="design_of_mercy.html#SECTION00051000000000000000" shape="rect">
+          Balanced Feistel network</a>
+</li>
+
+          <li>
+<a id="tex2html22" name="tex2html22" href="design_of_mercy.html#SECTION00052000000000000000" shape="rect">
+          Key schedule and S-boxes</a>
+</li>
+
+          <li>
+<a id="tex2html23" name="tex2html23" href="design_of_mercy.html#SECTION00053000000000000000" shape="rect">
+          Operation M</a>
+</li>
+
+          <li>
+<a id="tex2html24" name="tex2html24" href="design_of_mercy.html#SECTION00054000000000000000" shape="rect">Q
+          state machine</a>
+</li>
+
+          <li>
+<a id="tex2html25" name="tex2html25" href="design_of_mercy.html#SECTION00055000000000000000" shape="rect">F
+          function</a>
+</li>
+
+          <li>
+<a id="tex2html26" name="tex2html26" href="design_of_mercy.html#SECTION00056000000000000000" shape="rect">
+          Avalanche</a>
+</li>
+
+          <li>
+<a id="tex2html27" name="tex2html27" href="design_of_mercy.html#SECTION00057000000000000000" shape="rect">
+          Whitening</a>
+</li>
+
+          <li>
+<a id="tex2html28" name="tex2html28" href="design_of_mercy.html#SECTION00058000000000000000" shape="rect">
+          Linear and differential cryptanalysis</a>
+</li>
+        </ul>
+      </li>
+
+      <li>
+<a id="tex2html29" name="tex2html29" href="conclusions.html" shape="rect">Conclusions</a>
+</li>
+
+      <li>
+<a id="tex2html30" name="tex2html30" href="acknowledgements.html" shape="rect">Acknowledgements</a>
+</li>
+
+      <li>
+<a id="tex2html31" name="tex2html31" href="bibliography.html" shape="rect">Bibliography</a>
+</li>
+    </ul>
+    <!--End of Table of Child-Links-->
+    <br clear="none"/>
+
+    <p> </p>
+
+    <address>
+      mercy@paul.cluefactory.org.uk
+    </address>
+  </body>
+</html>

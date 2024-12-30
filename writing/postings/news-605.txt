@@ -1,0 +1,112 @@
+X-From-Line: nobody Sat Jan 23 13:58:54 1999
+Newsgroups: sci.crypt
+Subject: Re: Who will win in AES contest ??
+References: <36a77e8d.2733720@news.tpsa.pl> <rz77lugxr9k.fsf@corton.inria.fr>
+From: Paul Crowley <paul@hedonism.demon.co.uk>
+Date: 23 Jan 1999 13:58:52 +0000
+Message-ID: <87d846nl9e.fsf@hedonism.demon.co.uk>
+X-Newsreader: Gnus v5.5/XEmacs 20.4 - "Emerald"
+Lines: 99
+Xref: hedonism.demon.co.uk misc-news:605
+X-Gnus-Article-Number: 605   Sat Jan 23 13:58:54 1999
+
+Robert Harley <harley@corton.inria.fr> writes:
+
+> piotrus@bigfoot.com (Piotr Kulinski) writes:
+> > What do you think who will win in AES contest ???
+> > My type is Twofish....
+> 
+> Why do you think it would be Twofish?  Because Bruce Schneier wrote a
+> very popular book?  Twofish is quite a complex, non-obvious cypher.  No
+> offense intended to its inventors, but I don't think it is a
+> "front-runner".  If you care about speed first and security second
+> then Mars or RC6 are likely candidates.  If you care about security
+> first and speed second then DFC looks good.
+
+I think it is a front runner.  15 ciphers were submitted to NIST for
+the AES contest:
+
+CAST-256, CRYPTON, DEAL, DFC, E2, FROG, Hasty Pudding, LOKI97, MARS,
+MAGENTA, RC6, Rijndael, SAFER+, SERPENT, Twofish.
+
+Of these, four have sufficiently serious results against them to fall
+by the wayside: MAGENTA, LOKI97, FROG, and DEAL (I got this from
+http://www.ii.uib.no/~larsr/aes.html - the AES sofa in the block
+cipher lounge).  For reasons I don't fully understand, the
+equivalent-key result against MARS isn't being taken as damning, but
+I'll go with the flow here.  This leaves:
+
+CAST-256, CRYPTON, DFC, E2, Hasty Pudding, MARS, RC6, Rijndael,
+SAFER+, SERPENT, Twofish.
+
+The rest people seem generally happy with the security, so I'll move
+straight onto performance issues.  I've looked in three places for
+performance information: CAESAR's performance comparisons, Brian
+Gladman's C implementations, and the performance comparison
+paper by the Twofish team:
+http://www.dice.ucl.ac.be/crypto/CAESAR/performances.html
+http://www.seven77.demon.co.uk/aes.htm
+http://www.counterpane.com/twofish/
+
+CAESAR's comparisons on the target Pentium Pro processor make it clear
+we can forget about DEAL and SAFER+ on performance grounds: they don't
+seem to have advantages over the other candidates that justify paying
+that huge performance price.  DEAL went earlier anyway on security
+grounds. Hasty Pudding and DFC also look a little dodgy here but I'll
+let them through.  This leaves:
+
+CAST-256, CRYPTON, DFC, E2, Hasty Pudding, MARS, RC6, Rijndael,
+SERPENT, Twofish.
+
+Now time for the real cull: smart card memory requirements.  These
+figures are taken from the Counterpane paper, but they're backed up by
+figures from the original paper and close argument and I'd be
+interested to hear about any problems with them.  Seven of the
+algorithms (CAST-256, Crypton, DEAL, Rijndael, SAFER+, Serpent,
+Twofish) require 60 bytes of memory or less.  The remaining algorithms
+either require at least 195 bytes (DFC, E2, Frog, MARS, RC6), or do
+not discuss this requirement in the presentation papers (HPC, Loki97,
+Magenta) - it seems that HPC at least would require 2K of key tables.
+This leaves only:
+
+CAST-256, Crypton, Rijndael, Serpent, Twofish
+
+Two very popular candidates just got dropped: MARS and RC6.  Schneier
+et al argue that while their key setup requirements might fit into a
+256-byte CPU, so little memory would be left (no more than 61 bytes)
+that no practical application could use them.  They do look very
+impressive on high-end processors, and I hope the inventors decide to
+release the patents so we can use them on such applications, but the
+AES winner has to be flexible enough to run in a wider variety of
+environments.  Again, I'm interested to hear counterarguments, since
+this is controversial.
+
+This gives us five front runners.  Here are Schneier et al's figures
+on their performance:
+
+CAST-256 Crypton Rijndael Serpent Twofish
+    4300     360     2100    2500    8000  Key setup PPro in C
+     660     480      440    1030     400  Encrypt PPro in C
+     600     390      320     900     285  Encrypt PPro in ASM
+     600     390      320    1100     290  Encrypt Pentium in ASM
+(Figures in clocks from Table 2 of the Schneier et. al. paper.
+Note that faster ASM versions of Twofish have been developed since
+this came out.)
+
+My eyes hurt, so I'm not going to try and summarise the results on the 
+CAESER or Brian Gladman pages; I encourage you to go and look. I don't 
+think that CAST or Serpent have enough to recommend them to justify
+the performance cost; this basically leaves Crypton, Rijndael, and
+Twofish as likely winners.  I find through writing this that I haven't 
+been paying enough attention to Crypton in this contest and I'll have
+to find out more about it - Schneier et al say it's the most hardware
+friendly.  Rijndael is rather nice.  However, I agree with the
+previous poster that Twofish is the most likely contest winner - it's
+the best performer on 32-bit processors, very competitive everywhere
+else, and offers a wide variety of useful implementation tradeoffs.
+It also has the most comprehensive submission document.
+-- 
+  __
+\/ o\ paul@hedonism.demon.co.uk  http://www.hedonism.demon.co.uk/paul/ \ /
+/\__/ Paul Crowley            Upgrade your legacy NT machines to Linux /~\
+

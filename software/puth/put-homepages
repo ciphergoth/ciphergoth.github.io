@@ -1,0 +1,601 @@
+#!/usr/bin/perl -w
+# -*- mode: perl -*-
+
+# put-homepages - uploads Web pages to the Demon Homepages service
+
+# Copyright (c) 1999 Paul Crowley <paul@hedonism.demon.co.uk>.
+# All rights reserved.
+# This program is free software; you can redistribute it and/or
+# modify it under the same terms as Perl itself.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+######################################################################
+# Header information
+
+$rcsid = q$Id: put-homepages 1.2 Sun, 20 Jun 1999 20:39:35 +0100 paul $;
+
+use strict;
+
+use Net::FTP;
+use Getopt::Long;
+use Time::ParseDate ();
+use Cwd;
+use File::Copy;
+
+use vars qw($rcsid),
+  qw($opt_verbose $opt_help $opt_version),
+  qw($opt_config_dir),
+  qw($opt_use_prcs $opt_checkout_prcs),
+  qw($opt_host $opt_name),
+  qw($opt_passive $opt_force_connect $opt_force_noconnect),
+  qw($opt_extras_fetch $opt_do_update $opt_force_cmp),
+  qw($configdir),
+  qw(%all_map %current_map %prcs_map %new_map %remote_map %extras_map),
+  qw(@delete @rmdir @mkdir @put @extras_fetch),
+  qw($ftp);
+
+######################################################################
+# Subroutines
+
+sub check_lslr {
+  foreach (@_) {
+    die "Neither file nor directory: $_->{path} , stopped"
+      if ($_->{type} !~ /^[fd]$/);
+    $all_map{$_->{path}} = 1;
+  }
+}
+
+sub parse_lslr {
+  my ($state, $directory, @response);
+  
+  # State 0: waiting for "total x" line.
+  # State 1: waiting for file line or blank line, or directory name.
+  # State 2: waiting for directory name.
+  
+  $state = 0;
+  $directory = ".";
+  @response = ();
+ LINE: foreach (@_) {
+    if ($state == 0) {
+      if (/^total \d+$/) {
+	$state = 1;
+      } else {
+	warn "State $state can't match input line $.\n\"$_\"\n";
+      }
+    } elsif ($state == 1) {
+      my @fileinfo;
+      my $d;
+      
+      if ($_ eq "") {
+	$state = 2;
+      } elsif (@fileinfo  = m{^
+        (\S)(\S{9})\s+ # -rwxr-xr-x (type and mode)
+        \d+\s+ #  1 (number of hard links - not used)
+        (\S+)\s+ # root (user)
+        (\S+)\s+ # wheel (group)
+        (\d+)\s+ # 482193 (size)
+        (\w\w\w\ ..\ .....)\s+ # May 12 13:50 or June 5 1995 (date)
+        (\S+) # foo.tar.gz (basename)
+        (?:\s->\s(\S+))? # -> symlinkname (dest)
+            # (the ?: means only the name goes into the match, not the ->)
+      $ }ox) {
+	my %filec = ();
+	@filec{qw(type mode user group size date basename dest)} = @fileinfo;
+	my $basename = $filec{basename};
+	if ($basename eq '.' || $basename eq '..') {
+	  next LINE;
+	}
+	delete $filec{dest} unless (defined $filec{dest});
+	$filec{type} = 'f' if $filec{type} eq '-';
+	$filec{directory} = $directory;
+	$filec{path} = "$directory/$basename";
+	$filec{'time'} = Time::ParseDate::parsedate($filec{date});
+	push @response, \%filec;
+      } elsif (($d) = /^(\S+):$/) {
+	unless ($d =~ /^.\//) {
+	  $d = "./$d";
+	}
+	$directory = $d;
+	$state = 0;
+      } else {
+	warn "State $state can't match input line $.\n\"$_\"\n";
+      }
+    } elsif ($state == 2) {
+      my $d;
+      if (($d) = /^(\S+):$/) {
+	unless ($d =~ /^.\//) {
+	  $d = "./$d";
+	}
+	$directory = $d;
+	$state = 0;
+      } else {
+	warn "State $state can't match input line $.\n\"$_\"\n";
+      }
+    } else {
+      die "Internal error: bad state, stopped";
+    }
+  }
+  check_lslr @response;
+  return @response;
+}
+
+sub lslr_dir {
+  my ($hashref, $dir) = @_;
+  print "ls -lgLR $dir\n" if $opt_verbose;
+  chdir $dir or die "Failed to chdir to $dir: $!, stopped";
+  open LSLR, "ls -lgLR|" or die "Can't run ls -lgLR: $!, stopped";
+  %$hashref = map {($_->{path}, $_)} parse_lslr map {chomp; $_} <LSLR>;
+  close LSLR or die "Can't close: $!, stopped";
+}
+
+sub versions_differ {
+  my ($file) = @_;
+  
+  if ($current_map{$file}->{size} != $new_map{$file}->{size}) {
+    print "Sizes differ, replacing: $file\n";
+    return 1;
+  }
+  if (!$opt_force_cmp and 
+      $current_map{$file}->{'time'} > $new_map{$file}->{'time'}) {
+    return 0;
+  }
+  if (`cmp $configdir/current/$file $configdir/new/$file` ne '') {
+    print "Contents differ, replacing: $file\n";
+    return 1;
+  }
+  if ($opt_force_cmp) {
+    print "No real difference in $file\n" if $opt_verbose;
+  } else {
+    # Touch the file so we don't compare next time.
+    print "No real difference, touching: $file\n";
+    system "touch", "$configdir/current/$file";
+  }
+  return 0;
+}
+
+######################################################################
+# Options
+
+$opt_verbose = 1;
+$opt_help = 0;
+$opt_version = 0;
+
+$opt_config_dir = "/home/homepgs";
+
+$opt_use_prcs = 1;
+$opt_checkout_prcs = 1;
+$opt_force_cmp = 0;
+$opt_force_connect = 0;
+$opt_force_noconnect = 0;
+
+$opt_host = 'homepages.demon.co.uk';
+chomp ($opt_name = `hostname`);
+$opt_passive = 1;
+$opt_extras_fetch = 1;
+$opt_do_update = 1;
+
+GetOptions qw(version help verbose!),
+  qw(config-dir=s),
+  qw(use-prcs! checkout-prcs! force-cmp! force-connect! force-noonnect!),
+  qw(host=s name=s passive! extras-fetch! do-update!)
+  or die "Couldn't parse command line (try --help), stopped";
+
+if ($opt_help) {
+  print "Usage: $0 --host=HOSTNAME [OPTION]...\n",
+  "  or:  $0 --help\n",
+  "  or:  $0 --version\n",
+  "Updates pages stored on Demon Homepages server.\n",
+  "\n",
+  "  --help                display this help and exit\n",
+  "  --version             output version information and exit\n",
+  "  --[no]verbose         explain what is being done (default --verbose)\n",
+  "\n",
+  "  --config-dir=DIR      Data directory for pages\n",
+  "                          (default $opt_config_dir)\n",
+  "  --host=HOSTNAME       host to upload new pages to\n",
+  "                          (default $opt_host)\n",
+  "  --name=NAME           name to present to FTP server (default $opt_name)\n",
+  "  --[no]use-prcs        consult PRCS (default --use-prcs)\n",
+  "  --[no]checkout-prcs   checkout latest from PRCS (default --checkout-prcs)\n",
+  "  --[no]force-cmp       always use cmp (default --noforce-cmp)\n",
+  "  --[no]force-connect   always connect (default --noforce-connect)\n",
+  "  --[no]force-noconnect never connect (default --noforce-noconnect)\n",
+  "  --[no]passive         use passive FTP (default --passive)\n",
+  "  --[no]extras-fetch    fetch unexpected files (default --extras-fetch)\n",
+  "  --[no]do-update       update remote archive (default --do-update)\n";
+  exit;
+}
+
+if ($opt_version) {
+  print "RCS version information: $rcsid\n";
+  exit;
+}
+
+if (scalar(@ARGV) > 0) {
+  die "Unparsed options \"" . join(' ', @ARGV) . "\" on command line (try --help), stopped";
+}
+
+$ENV{TZ} = "UTC";
+
+$configdir = $opt_config_dir;
+
+if ($configdir !~ /^\//) {   
+  $configdir = cwd . "/" . $configdir;
+  print "Prepending current directory to config dir: $configdir\n";
+}
+
+######################################################################
+# Body
+
+######## Read revision control information
+
+if ($opt_use_prcs) {
+  $ENV{'PRCS_REPOSITORY'} = $configdir . "/PRCS";
+ 
+  if ($opt_checkout_prcs) {
+    print "Checking out latest version...\n" if $opt_verbose;
+    chdir $configdir . "/new" or die "Failed to chdir to $configdir/new: $!, stopped";
+    my $rc = system qw(prcs checkout --quiet --force);
+    die "PRCS checkout failed, stopped" if (($rc >> 8) != 0);
+  }
+  
+  # Use version control to find out what files should be present
+  print "Checking PRCS status\n" if $opt_verbose;
+  open PRCSOUT, "prcs execute --quiet --force|" or die "Couldn't run PRCS: $!, stopped";
+  %prcs_map = map {chomp; (("./" . $_), 1)} <PRCSOUT>;
+  close PRCSOUT or die "Couldn't close PRCS output: $!, stopped";
+}
+
+lslr_dir(\%new_map, $configdir . "/new");
+
+######## Ignore files we don't really want
+
+my $file;
+foreach $file (sort keys %new_map) {
+  if ($file =~ m!(^|/)\.[^/]*$! or $file =~ m!.*\.prj$!) {
+    print "Pretending file isn't present: $file\n" if $opt_verbose;
+    delete $new_map{$file};
+  } elsif ($opt_use_prcs && !exists $prcs_map{$file}) {
+    print "File should not be present: $file\n";
+    delete $new_map{$file};
+  }
+}
+
+######## Compose a plan to update the remote end
+
+lslr_dir(\%current_map, $configdir . "/current");
+
+@delete = @rmdir = @put = @mkdir = ();
+
+# We only use the "keys" part of all_map.
+foreach $file (sort keys %all_map) {
+  my $types;
+  # print "File: $file\n";
+  if (exists $current_map{$file}) {  
+    $types = $current_map{$file}->{type};
+  } else {
+    $types = '_';
+  }
+  if (exists $new_map{$file}) {  
+    $types .= $new_map{$file}->{type};
+  } else {
+    $types .= '_';
+  }
+  # print "Types: $types\n";
+  $_ = $types;
+ SWITCH: {
+    if (/ff/) {
+      if (versions_differ($file)) {
+	push @delete, $file;
+	push @put, $file;
+      }
+      last SWITCH;
+    }
+    if (/f[^f]/) {
+      print "Removing file: $file\n";
+      push @delete, $file;
+    }
+    if (/d[^d]/) {
+      print "Removing directory: $file\n";
+      push @rmdir, $file;
+    }
+    if (/[^f]f/) {
+      print "Creating file: $file\n";
+      push @put, $file;
+    }
+    if (/[^d]d/) {
+      print "Creating directory: $file\n";
+      push @mkdir, $file;
+    }
+  }
+}
+
+# By setting both "force" flags, you can make it connect only when
+# it isn't necessary - bug or feature?
+
+if (@delete or @rmdir or @put or @mkdir) {
+  if ($opt_force_noconnect) {
+    print "Differences found but --force-noconnect is set\n";
+    exit;
+  } else {
+    print "Differences found.\n" if $opt_verbose;
+  }
+} else {
+  if ($opt_force_connect) {
+    print "No differences found but --force-connect is set\n";
+  } else {
+    print "No differences found, stopping.\n" if $opt_verbose;
+    exit;
+  }
+}
+
+######## Prepare for connecting
+
+print "Reading extras space...\n" if $opt_verbose;
+
+my %extras_map;
+lslr_dir(\%extras_map, $configdir . "/extras");
+
+print "Reading password file...\n" if $opt_verbose;
+
+open PASSFILE, $configdir . "/password"
+  or die "Couldn't open password file for reading: $!, stopped";
+
+chomp (my $password = <PASSFILE>);
+close PASSFILE or die "Couldn't close password file: $!, stopped";
+
+######## Connect to remote FTP site
+
+print "Connecting to remote host...\n" if $opt_verbose;
+$ftp = new Net::FTP ($opt_host, Passive => $opt_passive) or die;
+
+print "Logging in...\n"  if $opt_verbose;
+unless ($ftp->login($opt_name, $password)) {
+  die "Failed to connect to remote host: " . $ftp->message() . " stopped";
+}
+
+print "Switching to BINARY mode\n"  if $opt_verbose;
+$ftp->binary() or die;
+
+######## Check that local version is accurate, find "extras"
+
+print "Finding remote state\n" if $opt_verbose;
+open REMOTESTATE, ">" . $configdir . "/remote-state"
+  or die "Couldn't open remote state file for writing: $!, stopped";
+my %remote_map;
+my $rsref = $ftp->ls("-lR");
+unless ($rsref) {
+  die "Couldn't get ls -lR output from remote side: " . $ftp->message() . 
+    " stopped\n";
+}
+foreach (@$rsref) {
+  print REMOTESTATE $_ , "\n";
+}
+close REMOTESTATE or die "Couldn't close remote state file: $!, stopped";
+
+%remote_map = map {($_->{path}, $_)} parse_lslr @$rsref;
+
+print "Checking accuracy of current space\n" if $opt_verbose;
+
+my $fatal_discrepancy_found = 0;
+
+@extras_fetch = ();
+
+foreach $file (sort keys %all_map) {
+  if ($file =~ m!(^|/)\.[^/]*$!) {
+    print "Skipping dot file: $file\n" if $opt_verbose;
+    next;
+  }
+  my $types;
+  # print "File: $file\n";
+  if (exists $current_map{$file}) {  
+    $types = $current_map{$file}->{type};
+  } else {
+    $types = '_';
+  }
+  if (exists $remote_map{$file}) {  
+    $types .= $remote_map{$file}->{type};
+  } else {
+    $types .= '_';
+  }
+  # print "Types: $types\n";
+  $_ = $types;
+ SWITCH: {
+    last SWITCH if /__/;
+    last SWITCH if /dd/;
+    if (/ff/) {
+      if ($current_map{$file}->{size} != $remote_map{$file}->{size}) {
+	print "Fatal discrepancy, remote file is a different size: $file\n";
+	$fatal_discrepancy_found = 1;
+	push @extras_fetch, $file;
+      }
+      last SWITCH;
+    }
+    if (/f_/) {
+      print "Fatal discrepancy, remote file doesn't exist: $file\n";
+      $fatal_discrepancy_found = 1;
+      last SWITCH;
+    }
+    if (/d_/) {
+      print "Fatal discrepancy, remote directory doesn't exist: $file\n";
+      $fatal_discrepancy_found = 1;
+      last SWITCH;
+    }
+    if (/_f/) {
+      print "File there that isn't here: $file\n";
+      if (!exists $extras_map{$file}) {
+	print "No extras file, fetching\n";
+	push @extras_fetch, $file;
+      } elsif ($extras_map{$file}->{type} ne "f") {
+	print "File maps to directory in extras space, skipping\n";
+      } elsif ($extras_map{$file}->{'time'} < $remote_map{$file}->{'time'}) {
+	print "Remote file is newer, fetching\n";
+	push @extras_fetch, $file;
+      } elsif ($extras_map{$file}->{size} != $remote_map{$file}->{size}) {
+	print "Remote file is a different size, fetching\n";
+	push @extras_fetch, $file;
+      } else {
+	print "Anomalous file already fetched, skipping\n";
+      }
+      last SWITCH;
+    }
+    if (/_d/) {
+      print "Directory there that isn't here: $file\n";
+      last SWITCH;
+    }
+    if (/fd/) {
+      print "Fatal discrepancy, local file is remote directory: $file\n";
+      $fatal_discrepancy_found = 1;
+      last SWITCH;
+    }
+    if (/df/) {
+      print "Fatal discrepancy, local directory is remote file: $file\n";
+      $fatal_discrepancy_found = 1;
+      last SWITCH;
+    }
+    die "Internal error: weird type pair in comparison, stopped";
+  }
+}
+
+######## Fetch remote-only files
+
+if ($opt_extras_fetch) {
+ FILE: foreach $file (@extras_fetch) {
+    print "Get: $file\n";
+    my @parts = split(m|/|, $file);
+    pop(@parts);
+    my $dir = $configdir . "/extras";
+    my $part;
+    foreach $part (@parts) {
+      $dir .= "/" . $part;
+      unless (-d $dir) {
+	if (-e $dir || !mkdir($dir, 0777)) {
+	  warn "Couldn't create directory $dir to contain $file";
+	  next FILE;
+	}
+      }
+    }
+    $ftp->get($file, $configdir . "/extras/" . $file)
+      or warn "Couldn't get file: $file " . $ftp->message();
+  }
+} elsif ($opt_verbose && @extras_fetch) {
+  print "Not fetching extras files: \n";
+  map {print "  $_\n"} @extras_fetch;
+  print "\n";
+}
+
+if ($fatal_discrepancy_found) {
+  $ftp->quit() or die "Couldn't close the connection cleanly: $!, stopped";
+  die "Fatal discrepancy, stopped";
+}
+
+######## Execute plan for updating remote end, keeping local in sync
+
+if ($opt_do_update) {
+  chdir $configdir . "/current";
+  foreach $file (@delete) {
+    print "Delete: $file\n";
+    if ($ftp->delete($file)) {
+      unlink $configdir . "/current/" . $file
+	or die "Couldn't unlink $file: $!, stopped";
+    } else {
+      warn "Couldn't delete remote file $file: " . $ftp->message();
+    }
+  }
+  foreach $file (reverse sort @rmdir) {
+    print "Rmdir: $file\n";
+    if ($ftp->rmdir($file)) {
+      rmdir $configdir . "/current/" . $file 
+	or die "Couldn't rmdir $file: $!, stopped";
+    } else {
+      warn "Couldn't rmdir remote file $file: " . $ftp->message();
+    }
+  }
+  foreach $file (sort @mkdir) {
+    print "Mkdir: $file\n";
+    my $success = 0;
+    if ($ftp->mkdir($file)) {
+      $success = 1;
+    } else {
+      if ($ftp->message =~ /MKD command successful/) {
+	warn "Directory creation succeeded but returned 0";
+	$success = 1;
+      }
+    }
+    if ($success) {
+      mkdir $configdir . "/current/" . $file , 0777
+	or die "Couldn't mkdir $file: $!, stopped";
+    } else {
+      warn "Couldn't mkdir remote file $file: " . $ftp->message();
+    }	    
+  }
+  foreach $file (@put) {
+    print "Put: $file\n";
+    if ($ftp->put($configdir. "/new/". $file, $file)) {
+      copy($configdir. "/new/". $file, $configdir . "/current/" . $file)
+	or die "Couldn't copy $file: $!, stopped";
+    } else {
+      warn "Couldn't put remote file $file: " . $ftp->message();
+    }
+  }
+} elsif ($opt_verbose) {
+  if (@delete) {
+    print "Not deleting files:\n";
+    map { print "  $_\n"} @delete;
+    print "\n";
+  }
+  if (@rmdir) {
+    print "Not removing directories:\n";
+    map { print "  $_\n"} (reverse sort @rmdir);
+    print "\n";
+  }
+  if (@mkdir) {
+    print "Not creating directories:\n";
+    map { print "  $_\n"} @mkdir;
+    print "\n";
+  }
+  if (@put) {
+    print "Not uploading files:\n";
+    map { print "  $_\n"} @put;
+    print "\n";
+  }
+}
+
+print "Logging out\n" if $opt_verbose;
+$ftp->quit() or die "Couldn't close the connection cleanly: $!, stopped";
+print "Done.\n" if $opt_verbose;
+
+__END__;
+
+=head1 NAME
+
+put-homepages - uploads Web pages to the Demon Homepages service
+
+=head1 DESCRIPTION
+
+C<put-homepages> keeps a remote FTP site in sync with a local version, 
+optionally kept under PRCS source control.  It's designed primarily for 
+users of the Demon Internet "Homepages" service, but a future incarnation
+might be more general purpose.
+
+This script is still under active development and should not be used by 
+non-Perl hackers.  If you'd like to contribute, please mail me.  See also the
+website for this script:
+
+http://www.hedonism.demon.co.uk/paul/downloads/puth.html
+
+=head1 AUTHOR
+
+Paul Crowley <paul@hedonism.demon.co.uk>
+
+=head1 COPYRIGHT
+
+Copyright (C) 1997-1999 Paul Crowley.  All rights reserved.
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut

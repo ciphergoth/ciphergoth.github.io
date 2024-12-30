@@ -1,0 +1,482 @@
+<!-- -*- mode: xml -*- -->
+<!--Converted with LaTeX2HTML 99.2beta6 (1.42)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Design of Mercy</title>
+    <meta name="description" content="Design of Mercy"/>
+    <meta name="keywords" content="mercy-paper"/>
+    <meta name="resource-type" content="document"/>
+    <meta name="distribution" content="global"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <meta name="Generator" content="LaTeX2HTML v99.2beta6"/>
+    <meta http-equiv="Content-Style-Type" content="text/css"/>
+    <link rel="STYLESHEET" href="mercy-paper.css"/>
+    <link rel="next" href="conclusions.html"/>
+    <link rel="previous" href="description_of_mercy.html"/>
+    <link rel="up" href="./"/>
+    <link rel="next" href="conclusions.html"/>
+    <meta name="MSSmartTagsPreventParsing" content="TRUE"/>
+  </head>
+
+  <body bgcolor="white">
+    <!--Navigation Panel--><a id="tex2html86" name="tex2html86" href="conclusions.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html84" name="tex2html84" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html78" name="tex2html78" href="description_of_mercy.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html87" name="tex2html87" href="conclusions.html" shape="rect">Conclusions</a> <strong> Up:</strong>
+    <a id="tex2html85" name="tex2html85" href="./" shape="rect">Mercy: a fast
+    large</a> <strong> Previous:</strong> <a id="tex2html79" name="tex2html79" href="description_of_mercy.html" shape="rect">Description
+    of Mercy</a>
+    <br clear="none"/>
+    <br clear="none"/>
+     <!--End of Navigation Panel--> <!--Table of Child-Links--> <a id="CHILD_LINKS" name="CHILD_LINKS" shape="rect">
+<strong>
+    Subsections</strong>
+</a>
+</p>
+
+    <ul>
+      <li>
+<a id="tex2html88" name="tex2html88" href="design_of_mercy.html#SECTION00051000000000000000" shape="rect">
+      Balanced Feistel network</a>
+</li>
+
+      <li>
+<a id="tex2html89" name="tex2html89" href="design_of_mercy.html#SECTION00052000000000000000" shape="rect">Key
+      schedule and S-boxes</a>
+</li>
+
+      <li>
+<a id="tex2html90" name="tex2html90" href="design_of_mercy.html#SECTION00053000000000000000" shape="rect">
+      Operation M</a>
+</li>
+
+      <li>
+<a id="tex2html91" name="tex2html91" href="design_of_mercy.html#SECTION00054000000000000000" shape="rect">Q
+      state machine</a>
+</li>
+
+      <li>
+<a id="tex2html92" name="tex2html92" href="design_of_mercy.html#SECTION00055000000000000000" shape="rect">F
+      function</a>
+</li>
+
+      <li>
+<a id="tex2html93" name="tex2html93" href="design_of_mercy.html#SECTION00056000000000000000" shape="rect">
+      Avalanche</a>
+</li>
+
+      <li>
+<a id="tex2html94" name="tex2html94" href="design_of_mercy.html#SECTION00057000000000000000" shape="rect">
+      Whitening</a>
+</li>
+
+      <li>
+<a id="tex2html95" name="tex2html95" href="design_of_mercy.html#SECTION00058000000000000000" shape="rect">
+      Linear and differential cryptanalysis</a>
+</li>
+    </ul>
+    <!--End of Table of Child-Links-->
+    <hr/>
+
+    <h1>
+<a id="SECTION00050000000000000000" name="SECTION00050000000000000000" shape="rect"/>
+<a id="sec:design" name="sec:design" shape="rect"/>
+    <br clear="none"/>
+     Design of Mercy</h1>
+
+    <p>Existing approaches to large block ciphers use a few strong
+    rounds based on existing cryptographic primitives. These
+    ciphers cannot achieve speeds better than half that of the
+    fastest block ciphers [<a href="bibliography.html#onvariable" shape="rect">2</a>] or a third of the
+    fastest stream ciphers [<a href="bibliography.html#bearlion" shape="rect">1</a>]. Current block cipher
+    speeds don't approach the needs of the design goals even before
+    the extra penalties for doubling up, while those solutions
+    based on stream ciphers pay a heavy penalty in key scheduling
+    overhead that puts their speeds well below those needed.</p>
+
+    <p>Mercy addresses this by using more rounds of a weaker
+    function. This makes more efficient use of the work done in
+    earlier rounds to introduce confusion in later rounds, and is
+    closer to a traditional block cipher approach drawn across a
+    larger block. It also draws more state between disparate parts
+    of the block, protecting against the certificational weaknesses
+    identified in Section <a href="avalanche_and_certif.html#sec:collision" shape="rect">2</a>.</p>
+
+    <h2>
+<a id="SECTION00051000000000000000" name="SECTION00051000000000000000" shape="rect">Balanced Feistel
+    network</a>
+</h2>
+
+    <p>Balanced Feistel networks are certainly the best studied
+    frameworks from which to build a block cipher, although I know
+    of no prior work applying them to such large block sizes. They
+    allow the design of the non-linear transformations to disregard
+    efficiency of reversal and provide a familiar framework by
+    which to analyse mixing. Balanced networks seem better suited
+    to large block ciphers than unbalanced networks, since an
+    unbalanced network is likely to have to do work proportional to
+    the larger of the input and output data width.</p>
+
+    <p>Feistel ciphers normally omit the final swap, so that
+    decryption has the same structure as encryption. However, Mercy
+    implementations will typically encrypt blocks in-place, and the
+    cost of having an odd number of swaps (forcing a real swap)
+    would be high, so the last swap is not omitted.</p>
+
+    <p>Mercy's round function, while weaker than those used in [<a href="bibliography.html#bearlion" shape="rect">1</a>], is considerably
+    stronger than that of traditional Feistel ciphers,
+    necessitating many fewer rounds. The larger block size allows
+    more absolute work to be done in each round, while keeping the
+    work per byte small.</p>
+
+    <h2>
+<a id="SECTION00052000000000000000" name="SECTION00052000000000000000" shape="rect"/>
+<a id="sec:dfuncs" name="sec:dfuncs" shape="rect"/>
+    <br clear="none"/>
+     Key schedule and S-boxes</h2>
+
+    <p>The function <img width="19" height="14" align="BOTTOM" border="0" src="img25.png" alt="$ N $"/> used in building the
+    <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box is that used for nonlinear
+    subsitution in [<a href="bibliography.html#rijndael" shape="rect">7</a>]; it
+    is bijective and has known good properties against linear and
+    differential cryptanalysis, such as low LCmax and DCmax in the
+    terminology of [<a href="bibliography.html#lcmax" shape="rect">13</a>]. We
+    use this function to build known good key-dependent bijective
+    substitutions using an extension of the technique outlined in
+    [<a href="bibliography.html#sboxdes" shape="rect">4</a>]; however, rather
+    than a simple XOR, the <img width="12" height="15" align="BOTTOM" border="0" src="img84.png" alt="$ d $"/>
+    mappings before and after <img width="19" height="14" align="BOTTOM" border="0" src="img25.png" alt="$ N $"/> are
+    drawn at random from the entire space of bijective affine
+    functions on <img width="57" height="33" align="MIDDLE" border="0" src="img30.png" alt="$ GF(2)^{8} $"/>, of which
+    there are approximately <img width="36" height="16" align="BOTTOM" border="0" src="img85.png" alt="$ 2^{70.2} $"/>
+    , by determining first the constant term <img width="29" height="31" align="MIDDLE" border="0" src="img86.png" alt="$ d[0] $"/> and then drawing candidate basis values from
+    the CPRNG to find a linearly independent set. Because the <img width="12" height="15" align="BOTTOM" border="0" src="img84.png" alt="$ d $"/> functions are affine, the LCmax
+    and DCmax of the composite function <!-- MATH
+         $d_1 \circ N
+        \circ d_0$
+         --> <img width="80" height="29" align="MIDDLE" border="0" src="img87.png" alt="$ d_1 \circ N \circ d_0 $"/> (and
+    siblings) will be the same as those of <img width="19" height="14" align="BOTTOM" border="0" src="img25.png" alt="$ N $"/> itself. The composite functions will also be
+    bijective since each of the components are, and hence all the
+    bytes in each column of the <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> table
+    will be distinct.</p>
+
+    <p>However, there are fewer possible composite functions than
+    there are pairs <img width="42" height="29" align="MIDDLE" border="0" src="img88.png" alt="$ d_0, d_1 $"/>. In fact for
+    each possible composite function, there are <!-- MATH
+         $255 \times 8 = 2040$
+         --> <img width="108" height="28" align="MIDDLE" border="0" src="img89.png" alt="$ 255 \times 8 = 2040 $"/> pairs <img width="42" height="29" align="MIDDLE" border="0" src="img88.png" alt="$ d_0, d_1 $"/> which generate it. This
+    follows from the following two properties of <img width="19" height="14" align="BOTTOM" border="0" src="img25.png" alt="$ N $"/>:
+    <br clear="none"/>
+    </p>
+
+    <div align="CENTER">
+      <!-- MATH
+             \begin{eqnarray*}
+            \forall a \in GF(2^8) - \{0\}: \forall x \in GF(2^8): a N( ax ) & = & N(x) \\
+            \forall b \in 0 \ldots 7: \forall x \in GF(2^8): N( x^{2^j} ) & = &
+            N(x)^{2^j}
+            \end{eqnarray*}
+             -->
+
+      <table cellpadding="0" align="CENTER" width="100%">
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="306" height="35" align="MIDDLE" border="0" src="img90.png" alt="$\displaystyle \forall a \in GF(2^8) - \{0\}: \forall x \in GF(2^8): a N( ax )$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="40" height="31" align="MIDDLE" border="0" src="img91.png" alt="$\displaystyle N(x)$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+
+        <tr valign="BASELINE">
+          <td nowrap="nowrap" align="RIGHT" rowspan="1" colspan="1">
+<img width="244" height="41" align="MIDDLE" border="0" src="img92.png" alt="$\displaystyle \forall b \in 0 \ldots 7: \forall x \in GF(2^8): N( x^{2^j} )$"/>
+</td>
+
+          <td width="10" align="CENTER" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="16" height="28" align="MIDDLE" border="0" src="img53.png" alt="$\displaystyle =$"/>
+</td>
+
+          <td align="LEFT" nowrap="nowrap" rowspan="1" colspan="1">
+<img width="53" height="41" align="MIDDLE" border="0" src="img93.png" alt="$\displaystyle N(x)^{2^j}$"/>
+</td>
+
+          <td width="10" align="RIGHT" rowspan="1" colspan="1">&nbsp;</td>
+        </tr>
+      </table>
+    </div>
+
+    <br clear="ALL"/>
+
+    <p>Since both multiplication and squaring in <img width="57" height="33" align="MIDDLE" border="0" src="img94.png" alt="$ GF(2^8) $"/> are linear (and hence affine) in <img width="57" height="33" align="MIDDLE" border="0" src="img95.png" alt="$ GF(2)^8 $"/> (squaring because in a
+    field of characteristic 2, <!-- MATH
+         $(x + y)^2 = x^2 + xy + yx + y^2 = x^2 + y^2$
+         --> <img width="279" height="33" align="MIDDLE" border="0" src="img96.png" alt="$ (x + y)^2 = x^2 + xy + yx + y^2 = x^2 + y^2 $"/>), both
+    of these properties provide independent ways of mapping from
+    any pair <img width="42" height="29" align="MIDDLE" border="0" src="img88.png" alt="$ d_0, d_1 $"/> to pairs which will
+    generate the same composite function, distinct in every case
+    except <!-- MATH
+         $(a, b) = (1, 0)$
+         --> <img width="95" height="31" align="MIDDLE" border="0" src="img97.png" alt="$ (a, b) = (1, 0) $"/>. Taking this into
+    account, the number of distinct composite functions possible is
+    approximately <img width="42" height="16" align="BOTTOM" border="0" src="img98.png" alt="$ 2^{129.4} $"/>, and there
+    are <!-- MATH
+         $2^{4613.7}$
+         --> <img width="48" height="16" align="BOTTOM" border="0" src="img99.png" alt="$ 2^{4613.7} $"/>functionally distinct
+    keys in total (considering <img width="56" height="29" align="MIDDLE" border="0" src="img100.png" alt="$ W_0,W_1 $"/>
+    as well as <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/>).</p>
+
+    <p>Little attention has been paid to either the time or memory
+    requirements of the key schedule, since key scheduling will be
+    very infrequent and typically carried out in user space.</p>
+
+    <h2>
+<a id="SECTION00053000000000000000" name="SECTION00053000000000000000" shape="rect">Operation M</a>
+</h2>
+
+    <p>As with [<a href="bibliography.html#wake" shape="rect">21</a>], this
+    operation is bijective, since from the least significant byte
+    of the output the input to the <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box
+    can be inferred. We differ from [<a href="bibliography.html#wake" shape="rect">21</a>] in using the most
+    significant byte for the lookup rather than the least; this
+    slightly improves the mixing gained from addition and seems to
+    be very slightly faster on the author's machine.</p>
+
+    <h2>
+<a id="SECTION00054000000000000000" name="SECTION00054000000000000000" shape="rect"/>
+<a id="sec:q" name="sec:q" shape="rect"/>
+    <br clear="none"/>
+     Q state machine</h2>
+
+    <p>A key-dependent state machine is an efficient way to bring
+    about strong dependencies between widely separated parts of the
+    block; since the state machine is reversible, changing a given
+    input word guarantees that every subsequent state will be
+    different and makes it slightly more likely than chance that
+    every output word will be different.</p>
+
+    <p>The basis of the state machine is 32 parallel four-stage
+    LFSRs based on the polynomial <!-- MATH
+         $x^{4}+x^{3}+1$
+         --> <img width="83" height="33" align="MIDDLE" border="0" src="img101.png" alt="$ x^{4}+x^{3}+1 $"/>. The input to each
+    LFSR is provided by a nonlinear mixing chain based on carry
+    bits from other LFSRs and taps into the state which are then
+    fed into Operation M after addition-based mixing with the
+    input. The use of an LFSR ensures that any pair of distinct
+    inputs of the same length which leave the LFSR in the same
+    state must be at least 5 words long.</p>
+
+    <p>Every <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box lookup depends on the
+    previous lookup, even across rounds. This goes against the
+    design principles outlined in [<a href="bibliography.html#pentium-crypt" shape="rect">18</a>,<a href="bibliography.html#wake-rofb" shape="rect">5</a>] which suggest that
+    ciphers should be designed to make best use of the parallelism
+    that modern processors can achieve, and to be wary of the
+    memory latency of table lookups. A variant on <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/> which allows several <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box
+    lookups to take place in parallel by taking taps from later in
+    the LFSR is easy to construct, but surprisingly did not result
+    in any speed improvements on the target platform. Ciphers
+    similar to Mercy which use this technique to improve
+    parallelism may be appropriate for other architectures.</p>
+
+    <p>Since the Feistel rounds use XOR mixing, <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/> is also designed such that the first operation
+    on the input is addition, as is the last operation on the
+    output. This improves operation mixing, helping to frustrate
+    attacks which model the cipher using a single algebraic group.
+    XOR is also used within <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/> for
+    the same reason.</p>
+
+    <p>The output is chosen for the property that, where <!-- MATH
+         $Q(S,x)=(S',y)$
+         --> <img width="119" height="31" align="MIDDLE" border="0" src="img102.png" alt="$ Q(S,x)=(S',y) $"/>, if either of <img width="15" height="15" align="BOTTOM" border="0" src="img103.png" alt="$ S $"/> or <img width="19" height="16" align="BOTTOM" border="0" src="img104.png" alt="$ S' $"/> is
+    known and either of <img width="13" height="14" align="BOTTOM" border="0" src="img105.png" alt="$ x $"/> or <img width="12" height="28" align="MIDDLE" border="0" src="img106.png" alt="$ y $"/> is known, the two unknowns can be inferred. We
+    prove this in four cases below:</p>
+
+    <ol>
+      <li>
+<img width="30" height="29" align="MIDDLE" border="0" src="img107.png" alt="$ S,x $"/> known, <img width="35" height="31" align="MIDDLE" border="0" src="img108.png" alt="$ S',y $"/> unknown: use <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/>
+      directly.</li>
+
+      <li>
+<a id="enum:s" name="enum:s" shape="rect"/>
+<img width="35" height="31" align="MIDDLE" border="0" src="img109.png" alt="$ S',x $"/> known, <img width="29" height="29" align="MIDDLE" border="0" src="img110.png" alt="$ S,y $"/>
+      unknown: from Equation <a href="description_of_mercy.html#eqn:q" shape="rect">1</a> we infer 
+      <!-- MATH
+             $y=S'_{3}+M(S'_{1}+x)$
+             --> <img width="145" height="31" align="MIDDLE" border="0" src="img111.png" alt="$ y=S'_{3}+M(S'_{1}+x) $"/>
+      and <!-- MATH
+             $S=(S'_{1},S'_{2},S'_{3},S'_{0}\oplus y)$
+             --> <img width="165" height="31" align="MIDDLE" border="0" src="img112.png" alt="$ S=(S'_{1},S'_{2},S'_{3},S'_{0}\oplus y) $"/>.</li>
+
+      <li>
+<a id="enum:x" name="enum:x" shape="rect"/>
+<img width="29" height="29" align="MIDDLE" border="0" src="img110.png" alt="$ S,y $"/> known, <img width="35" height="31" align="MIDDLE" border="0" src="img109.png" alt="$ S',x $"/>
+      unknown: <!-- MATH
+             $x=M^{-1}(y-S_{2})-S_{0}$
+             --> <img width="162" height="33" align="MIDDLE" border="0" src="img113.png" alt="$ x=M^{-1}(y-S_{2})-S_{0} $"/>(defined since <img width="21" height="14" align="BOTTOM" border="0" src="img114.png" alt="$ M $"/> is bijective), then apply
+      <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/> as normal.</li>
+
+      <li>
+<a id="enum:backwards" name="enum:backwards" shape="rect"/>
+<img width="35" height="31" align="MIDDLE" border="0" src="img108.png" alt="$ S',y $"/> known, <img width="30" height="29" align="MIDDLE" border="0" src="img107.png" alt="$ S,x $"/> unknown: find <img width="15" height="15" align="BOTTOM" border="0" src="img103.png" alt="$ S $"/>as
+      in <a href="design_of_mercy.html#enum:s" shape="rect">2</a> and <img width="13" height="14" align="BOTTOM" border="0" src="img105.png" alt="$ x $"/> as in <a href="design_of_mercy.html#enum:x" shape="rect">3</a>.</li>
+    </ol>
+
+    <h2>
+<a id="SECTION00055000000000000000" name="SECTION00055000000000000000" shape="rect">F function</a>
+</h2>
+
+    <p>These properties of <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/> are
+    used to build a fast, bijective F function. A bijective F
+    function lends resistance to a number of attacks, making 2
+    round iterative differential characteristics impossible and
+    frustrating truncated differential cryptanalysis, as well as
+    lending confidence that the input is being used efficiently.
+    For a fixed spice <img width="17" height="15" align="BOTTOM" border="0" src="img115.png" alt="$ G $"/>, we infer <img width="16" height="14" align="BOTTOM" border="0" src="img48.png" alt="$ F $"/>'s input <img width="16" height="14" align="BOTTOM" border="0" src="img116.png" alt="$ A $"/> given the output <img width="17" height="14" align="BOTTOM" border="0" src="img117.png" alt="$ B $"/> as
+    follows: the final state of the state machine is simply the
+    last four words of the output: <!-- MATH
+         $S_{n+4}=B_{n-4\ldots n-1}$
+         --> <img width="132" height="29" align="MIDDLE" border="0" src="img118.png" alt="$ S_{n+4}=B_{n-4\ldots n-1} $"/>; from
+    this, we can run the state machine backwards up to <img width="21" height="29" align="MIDDLE" border="0" src="img119.png" alt="$ S_{8} $"/> as with point <a href="design_of_mercy.html#enum:backwards" shape="rect">4</a> of Section <a href="design_of_mercy.html#sec:q" shape="rect">5.4</a> above, inferring 
+    <!-- MATH
+         $A_{0\ldots n-5}$
+         --> <img width="59" height="29" align="MIDDLE" border="0" src="img120.png" alt="$ A_{0\ldots n-5} $"/> as we do so. We
+    then use <!-- MATH
+         $A_{n-8\ldots n-5}$
+         --> <img width="76" height="29" align="MIDDLE" border="0" src="img121.png" alt="$ A_{n-8\ldots n-5} $"/>(which we just
+    inferred) and <img width="17" height="15" align="BOTTOM" border="0" src="img115.png" alt="$ G $"/> to infer <img width="21" height="29" align="MIDDLE" border="0" src="img122.png" alt="$ S_{0} $"/> using point <a href="design_of_mercy.html#enum:s" shape="rect">2</a> of Section <a href="design_of_mercy.html#sec:q" shape="rect">5.4</a> above, which gives us
+    our last four inputs <!-- MATH
+         $A_{n-4\ldots n-1}$
+         --> <img width="76" height="29" align="MIDDLE" border="0" src="img123.png" alt="$ A_{n-4\ldots n-1} $"/>.</p>
+
+    <h2>
+<a id="SECTION00056000000000000000" name="SECTION00056000000000000000" shape="rect"/>
+<a id="sec:avalanche" name="sec:avalanche" shape="rect"/>
+    <br clear="none"/>
+     Avalanche</h2>
+
+    <p>This F function does not provide full avalanche between
+    input and output. I see no secure way to build a balanced
+    full-avalanche F function for large blocks that isn't so much
+    slower than Mercy's F function that the time cost would not be
+    better spent on more rounds with the weaker F function.</p>
+
+    <p>Instead of providing full avalanche, the F function makes
+    two weaker guarantees that together are almost as
+    effective:</p>
+
+    <ul>
+      <li>A change to any bit of the input will on average change
+      half the bits of the last 128 bits of the output</li>
+
+      <li>A change to any bit of the last 128 bits of the input
+      will on average change half the bits of the output</li>
+    </ul>
+
+    <p>A full avalanche F function achieves avalanche across the
+    whole block after three rounds. This construction does so after
+    four rounds. In addition, in encryption and decryption every
+    keytable lookup depends on the result from the previous
+    lookup.</p>
+
+    <p>The partial collision attack from Section <a href="avalanche_and_certif.html#sec:collision" shape="rect">2</a> will
+    demonstrate that after six rounds Mercy's avalanche is
+    imperfect, since only 384 bits of state are carried between
+    some parts of the block, but such an attack would require that
+    <img width="32" height="16" align="BOTTOM" border="0" src="img124.png" alt="$ 2^{193} $"/> chosen plaintexts be
+    encrypted, and is thus outside the security goals of the
+    cipher. This suggests a distinction between perfect avalanche,
+    and avalanche sufficient to defeat cryptanalysis; this
+    distinction is useful since mechanisms for providing perfect
+    avalanche, such as networks based on Fourier transforms (used
+    in SAFER [<a href="bibliography.html#safer" shape="rect">12</a>] and
+    proposed by [<a href="bibliography.html#ritter-mixcore" shape="rect">16</a>]
+    for large block ciphers), can carry a heavy performance penalty
+    on large blocks. This distinction is not useful on small
+    blocks: if this attack is possible against a cipher with a
+    64-bit block, it will not require more than <img width="26" height="16" align="BOTTOM" border="0" src="img7.png" alt="$ 2^{33} $"/> chosen plaintexts.</p>
+
+    <h2>
+<a id="SECTION00057000000000000000" name="SECTION00057000000000000000" shape="rect">Whitening</a>
+</h2>
+
+    <p>Mercy only whitens one half of the input and output, since
+    the cost both in time and storage of whitening both halves
+    would be significant, and since the primary function of
+    whitening is to hide the input of the F function from
+    attackers. On large block ciphers, whitening also serves to
+    frustrate attacks based on creating inputs with special
+    structures, such as attempts to induce a repeating state in the
+    state machine of <img width="16" height="14" align="BOTTOM" border="0" src="img48.png" alt="$ F $"/>.</p>
+
+    <h2>
+<a id="SECTION00058000000000000000" name="SECTION00058000000000000000" shape="rect">Linear and differential
+    cryptanalysis</a>
+</h2>
+
+    <p>We do not prove Mercy resistant to either linear or
+    differential cryptanalysis; a large block cipher meeting the
+    performance goals that could be proven resistant would be a
+    worthy goal. However, four features of the cipher lend
+    resistance to these classes of attack.</p>
+
+    <p>First, the key dependent subsitutions are optimised against
+    linear and differential cryptanalysis as described in Section
+    <a href="design_of_mercy.html#sec:dfuncs" shape="rect">5.2</a>.</p>
+
+    <p>Second, the LFSR-based construction of the <img width="17" height="29" align="MIDDLE" border="0" src="img36.png" alt="$ Q $"/> state machine forces any input to the F function
+    with active substitutions (in the terminology of [<a href="bibliography.html#rijndael" shape="rect">7</a>]) to make at least
+    three substitutions active. In practice, the intent of the F
+    function design is that any difference in the input causing a
+    difference in a <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box substitution will
+    cause all subsequent <img width="16" height="14" align="BOTTOM" border="0" src="img23.png" alt="$ T $"/> box subsitution to be
+    uncorrelated; avoiding this effect will be very hard for
+    attackers. Most F functions cannot afford the luxury of 68
+    chained non-linear substitutions.</p>
+
+    <p>Third, the initial and final whitening should force
+    attackers to look for difference propagations or linear
+    correlations over at least four rounds.</p>
+
+    <p>Fourth, the ways in which key material is introduced in the
+    F function should mean that inferring a suggested key from a
+    given plaintext-ciphertext pair should be extremely
+    difficult.</p>
+    <hr/>
+    <!--Navigation Panel--><a id="tex2html86" name="tex2html86" href="conclusions.html" shape="rect">
+<img width="37" height="24" align="BOTTOM" border="0" alt="next" src="next.png"/>
+</a>
+
+    <p> <a id="tex2html84" name="tex2html84" href="./" shape="rect">
+<img width="26" height="24" align="BOTTOM" border="0" alt="up" src="up.png"/>
+</a> <a id="tex2html78" name="tex2html78" href="description_of_mercy.html" shape="rect">
+<img width="63" height="24" align="BOTTOM" border="0" alt="previous" src="prev.png"/>
+</a>
+    <br clear="none"/>
+     <strong> Next:</strong> <a id="tex2html87" name="tex2html87" href="conclusions.html" shape="rect">Conclusions</a> <strong> Up:</strong>
+    <a id="tex2html85" name="tex2html85" href="./" shape="rect">Mercy: a fast
+    large</a> <strong> Previous:</strong> <a id="tex2html79" name="tex2html79" href="description_of_mercy.html" shape="rect">Description
+    of Mercy</a> <!--End of Navigation Panel--></p>
+
+    <address>
+      mercy@paul.cluefactory.org.uk
+    </address>
+  </body>
+</html>

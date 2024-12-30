@@ -1,0 +1,4 @@
+#!/usr/bin/perl -0777i_MUNITION,see_http://ciphersaber.gurus.com
+(pop)?read STDIN,$p,10:print$p= ~time;sub S{@s[$x,$y]=@s[$y,$x]}sub
+Q{$s[($_[0]+=$_[1])%=@s]}@k=unpack'C*',(pop).$p;for$x(@t=@s=0..255){S
+Q$y,$k[$x%@k]+Q$x}$x=$y=0;print map{chr($_^Q S Q$y,Q$x,1)}unpack'C*',<>

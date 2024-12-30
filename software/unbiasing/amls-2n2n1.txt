@@ -1,0 +1,81 @@
+#include <stdio.h>
+int bits_used = 0;
+unsigned int coinflip() {
+    static unsigned long y = 123;
+    y=1664525L*y+1013904223L;
+    ++bits_used;
+    printf("%d", y>>31);
+    return y >> 31;
+}
+
+unsigned long exists[32]={0}, values[32], out[1], bcount=0;
+
+#define TEST(x,a,b)  ( (x[a]>>(b)) & 1 )
+#define SET1(x,a,b)  (x[a] |= (1uL<<(b)))
+#define SET0(x,a,b)  (x[a] &=~(1uL<<(b)))
+#define SET(x,a,b,c) ((c)?SET1(x,a,b):SET0(x,a,b))
+#define FLP(x,a,b)   (x[a] ^= (1uL<<(b)))
+#define FLIP(x,a,b)  ((FLP(x,a,b)>>(b))&1)
+
+void flipped(int node, int coin) {
+    while( node < sizeof(exists)*8 ) {
+        int a = node>>5, b = node&31;
+        if( FLIP(exists,a,b) ) {
+            SET(values,a,b,coin);
+            return;
+        }
+        node <<= 1;
+        if( TEST(values,a,b) == coin ) {
+            /* numeric successor: */
+            flipped(node|1, coin);
+            /* alphabetic successor:
+               flipped(node, 0)
+               tail recursion changed to a loop. */
+            coin = 0;
+        } else {
+            SET(out,bcount>>5,bcount&31,coin);
+            ++bcount;
+            /* alphabetic successor:
+               flipped(node, 1)
+               tail recursion changed to a loop. */
+            coin = 1;
+        }
+    }
+}
+
+int get_bit() {
+   while(!bcount) {
+      SET1(exists,0,1); SET(values,0,1,coinflip());
+      flipped(1,coinflip());
+   }
+   --bcount;
+   return TEST(out,bcount>>5, bcount&31);
+}
+
+void test() {
+   int i, first=1;
+   for( i = 0; (i < 8) || bcount>0; ++i) {
+      printf("%c", get_bit() ? '+' : '-');
+   }
+   printf("\n");
+}
+
+/* perl:
+my ($exists, $values,$out);
+sub flipped {
+    my ($node,$coin) = @_;
+    for( ; ; $node <<= 1 ) {
+        if( vec($exists, $node, 1) ^= 1 ) {
+            vec($values, $node, 1) = $coin;
+            return;
+        } elsif( vec($values, $node, 1) == $coin ) {
+            flipped( ($node<<1)|1, $coin ); $coin = 0;
+        } else { $out .= $coin; $coin = 1 }
+    }
+}
+sub get_bit {
+    flipped 1, coinflip until length $out;
+    chop $out;
+}
+*/
+

@@ -1,0 +1,160 @@
+<!-- -*- mode: xml -*- --><html>
+  
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+<title>ciphergoth.org: Mirdek: a card cipher inspired by "Solitaire"</title>
+    
+  
+<meta content="Paul Crowley" name="author">
+<meta content="TRUE" name="MSSmartTagsPreventParsing">
+<link type="text/css" rel="stylesheet" href="../../ciphergoth.css">
+<link href="mailto:webmaster@ciphergoth.org" rev="made">
+</head>
+
+  
+<body class="">
+<p class="navt">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      Mirdek</p>
+<h1>Mirdek: a card cipher inspired by "Solitaire"</h1>
+    
+<p>
+<a href="../solitaire/">Problems with Bruce Schneier's
+    "Solitaire"</a> describes a bias in the output of the card
+    cipher "Solitaire". Here I'll try and describe an alternative
+    cipher of my own design, "Mirdek", that avoids these
+    problems.</p>
+
+    
+<p>
+<strong>Updated 2001.04.07</strong>: Hello to visitors from
+    EAWorlds! I notice from my referrer log that <a href="http://eaworlds.boards.ea.com/messages?14@@.eef3fd2!ticket=15217563e72144f33&decode=602">
+     a message on this page</a> (scroll down) is bringing lots of
+    hits to this page. Please feel free to mail me with any
+    questions this stuff raises. Note that the "Solitaire" cipher
+    is the one linked above; this page is about my own (so far
+    unsuccessful) attempts to design a secure alternative.</p>
+
+    
+<p>Now, would someone mind telling me what the hell "Majestic"
+    is about? :-)</p>
+
+    
+<p>
+<strong>Updated 2000.01.27: This cipher is not
+    secure</strong>: it's terrifically weak against a chosen
+    plaintext attack. I hope to detail these weaknesses in a future
+    revision of these pages, and hopefully propose a stronger
+    variant.</p>
+
+    
+<p>
+<strong>Updated 2000.01.13</strong>: I've made many changes
+    since the original version was published here which I hope are
+    improvements. They certainly make the cipher easier to remember
+    and to operate, but I hope that they also improve security. Be
+    warned that there may yet be further changes - this is still a
+    "work in progress".</p>
+
+    
+<ul>
+      
+<li>
+<a href="description.html">Description of Mirdek</a>
+</li>
+
+      
+<li>
+<a href="example.html">Example of Mirdek
+      encryption</a>
+</li>
+
+      
+<li>
+<a href="verbose-mirdek">verbose-mirdek</a>: Perl source
+      for the Mirdek implementation used to generate the output in
+      the example. Fairly elaborate - a simpler version is to
+      follow.</li>
+    
+</ul>
+
+    
+<h2>About Mirdek</h2>
+
+    
+<p>Mirdek is intended to fulfill exactly the same goals as Bruce
+    Schneier's card cipher <a href="http://www.counterpane.com/solitaire.html">Solitaire</a>: a
+    cipher that can be operated entirely by hand, but that resists
+    machine cryptanalysis even from very well-funded adversaries. See
+    <a href="http://home.ecn.ab.ca/~jsavard/crypto/pp0105.htm">John
+    Savard's proposal</a> for another example.</p>
+
+    
+<h3>Strengths</h3>
+
+    
+<ul>
+      
+<li>No Solitaire-like bias</li>
+
+      
+<li>Use of IV drawn from shuffling means passphrase can be
+      used many times</li>
+
+      
+<li>Very easy operation by comparison to other proposals - no
+      mental arithmetic is required, only card counting and
+      matching</li>
+
+      
+<li>Relatively fast - practical even for short messages</li>
+
+      
+<li>Easy to learn</li>
+
+      
+<li>No jokers are needed</li>
+    
+</ul>
+
+    
+<h3>Weaknesses</h3>
+
+    
+<ul>
+      
+<li>The cipher is very vulnerable to a side channel attack
+      using a listening device</li>
+
+      
+<li>Distinctive deck arrangement must be hidden if the use of
+      encryption is to be kept secret.</li>
+
+      
+<li>IV makes ciphertext 26 characters longer than
+      plaintext</li>
+
+      
+<li>Plaintext feedback (rather than pure RNG operation) makes
+      analysis harder</li>
+
+      
+<li>State space limited to (26!)^2 ~= 2^177 rather than
+      Solitaire's 54! ~= 2^237</li>
+
+      
+<li>New and unproven</li>
+    
+</ul>
+  
+<p class="navb">
+<strong><a href="../../">
+	  ciphergoth.org</a></strong> &gt; 
+      <a href="../">Cryptology</a> &gt;
+      Mirdek</p>
+</body>
+
+</html>
